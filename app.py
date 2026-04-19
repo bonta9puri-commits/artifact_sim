@@ -152,9 +152,6 @@ elif mode == "シミュ":
     with right_col:
         st.markdown("### 結果")
 
-        # -------------------------
-        # 単体シミュ
-        # -------------------------
 if run_single:
     with st.spinner("計算中..."):
         result = run_multiple_simulations(
