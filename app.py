@@ -83,10 +83,31 @@ if mode == "運試し":
             st.info("左で部位を選んで「1個生成」を押してください。")
 
 
+
+
 # =========================
-# かんたん診断モード
+# シミュモード
 # =========================
-# =========================
+elif mode == "シミュ":
+    st.subheader("シミュモード")
+    st.info("目標スコアに到達するまでに必要な試行回数をシミュレートします。")
+
+    left_col, right_col = st.columns([1, 1.5])
+
+    with left_col:
+        st.markdown("### 設定")
+
+        trials = st.number_input(
+            "シミュ回数",
+            min_value=10,
+            max_value=1000,
+            value=100,
+            step=10
+        )
+
+        elixir_interval = st.number_input(
+            "エリクシル使用間隔（0で使用しない）",
+            min_value=0,# =========================
 # かんたん診断モード
 # =========================
 elif mode == "かんたん診断":
@@ -97,32 +118,27 @@ elif mode == "かんたん診断":
 
     with left_col:
         st.markdown("### 設定")
-        
+
         element_filter = st.selectbox(
-    "元素で絞り込み",
-    ["すべて", "炎", "水", "雷", "氷", "風", "岩", "草"]
-)
+            "元素で絞り込み",
+            ["すべて", "炎", "水", "雷", "氷", "風", "岩", "草"]
+        )
 
-if element_filter == "すべて":
-    filtered_character_names = sorted(character_builds.keys())
-else:
-    filtered_character_names = sorted(
-        name for name, data in character_builds.items()
-        if data.get("element") == element_filter
-    )
+        if element_filter == "すべて":
+            filtered_character_names = sorted(character_builds.keys())
+        else:
+            filtered_character_names = sorted(
+                name for name, data in character_builds.items()
+                if data.get("element") == element_filter
+            )
 
-if not filtered_character_names:
-    st.warning("この元素のキャラはまだ登録されていません。")
-    st.stop()
+        if not filtered_character_names:
+            st.warning("この元素のキャラはまだ登録されていません。")
+            st.stop()
 
-character_name = st.selectbox(
-    "キャラを選択",
-    filtered_character_names
-)
-        # ===== キャラ選択 =====
         character_name = st.selectbox(
             "キャラを選択",
-            list(character_builds.keys())
+            filtered_character_names
         )
 
         # ===== ビルド選択 =====
@@ -298,31 +314,6 @@ character_name = st.selectbox(
 
         else:
             st.info("左でキャラを選んで診断を開始してください。")
-
-
-# =========================
-# シミュモード
-# =========================
-elif mode == "シミュ":
-    st.subheader("シミュモード")
-    st.info("目標スコアに到達するまでに必要な試行回数をシミュレートします。")
-
-    left_col, right_col = st.columns([1, 1.5])
-
-    with left_col:
-        st.markdown("### 設定")
-
-        trials = st.number_input(
-            "シミュ回数",
-            min_value=10,
-            max_value=1000,
-            value=100,
-            step=10
-        )
-
-        elixir_interval = st.number_input(
-            "エリクシル使用間隔（0で使用しない）",
-            min_value=0,
             max_value=5000,
             value=250,
             step=50
