@@ -459,8 +459,8 @@ def run_character_simulation(
     build_name,
     trials=100,
     elixir_interval=250,
-    reroll_interval=1000,
-    reroll_times=10,
+    reroll_interval=150,
+    reroll_times=1,
     max_attempts=100000
 ):
     character_data = character_builds[character_name]
