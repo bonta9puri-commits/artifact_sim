@@ -458,8 +458,8 @@ def run_character_simulation(
     character_name,
     build_name,
     trials=100,
-    elixir_interval=250,
-    reroll_interval=150,
+    elixir_interval=0,
+    reroll_interval=0,
     reroll_times=1,
     max_attempts=100000
 ):
