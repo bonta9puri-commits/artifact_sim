@@ -91,6 +91,24 @@ mainstat_weights = {
     }
 }
 
+def get_forbidden_substat(mainstat):
+    if mainstat == "会心率":
+        return "会心率"
+    elif mainstat == "会心ダメージ":
+        return "会心ダメージ"
+    elif mainstat == "攻撃%":
+        return "攻撃%"
+    elif mainstat == "HP%":
+        return "HP%"
+    elif mainstat == "防御%":
+        return "防御%"
+    elif mainstat == "元素熟知":
+        return "元素熟知"
+    elif mainstat == "元素チャージ効率":
+        return "元素チャージ効率"
+    else:
+        return None
+
 def generate_artifact(part):
     candidates = list(mainstat_weights[part].keys())
     weights = list(mainstat_weights[part].values())
@@ -99,7 +117,11 @@ def generate_artifact(part):
     artifact_set = random.choice(set_names)
 
     num_substats = random.choices([3, 4], weights=[80, 20], k=1)[0]
-    subs = random.sample(substat_pool, num_substats)
+
+    forbidden_sub = get_forbidden_substat(main)
+    available_substats = [s for s in substat_pool if s != forbidden_sub]
+
+    subs = random.sample(available_substats, num_substats)
 
     substats = {}
     for s in subs:
@@ -146,17 +168,21 @@ def calc_weighted_score(substats, weights):
 def generate_elixir_artifact(part, mainstat, fixed_substats):
     substats = {}
 
+    forbidden_sub = get_forbidden_substat(mainstat)
+
     # 固定サブステ
     for s in fixed_substats:
-        if s in substat_values:
+        if s in substat_values and s != forbidden_sub:
             substats[s] = random.choice(substat_values[s])
 
     # 残りサブステをランダム追加（最大4個）
-    remaining = [s for s in substat_pool if s not in substats]
+    remaining = [s for s in substat_pool if s not in substats and s != forbidden_sub]
     while len(substats) < 4 and remaining:
         s = random.choice(remaining)
         substats[s] = random.choice(substat_values[s])
         remaining.remove(s)
+
+    initial_substats = substats.copy()
 
     # 強化5回
     for _ in range(5):
@@ -166,11 +192,10 @@ def generate_elixir_artifact(part, mainstat, fixed_substats):
     return {
         "部位": part,
         "メイン": mainstat,
-        "初期サブ": substats.copy(),
+        "初期サブ": initial_substats,
         "サブ": substats,
         "スコア": 0
     }
-
 # =========================
 # 振り直し（アップグレードだけ再抽選）
 # =========================
