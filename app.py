@@ -153,23 +153,22 @@ with left_col:
         step=10
     )
 
-    run_light = st.button("目安を見る", use_container_width=True)
+run_light = st.button("目安を見る", use_container_width=True)
 
-    st.caption("1周あたり樹脂20で換算します。")
-    st.caption("エリクシル・振り直しは標準設定です。")
-    st.caption("目安：180=実用 / 200=強い / 220+=ガチ")
+st.caption("1周あたり樹脂20で換算します。")
+st.caption("エリクシル・振り直しは標準設定です。")
+st.caption("目安：180=実用 / 200=強い / 220+=ガチ")
 
-    with right_col:
+with right_col:
     st.markdown("### 結果")
 
-    if run_light:
-        selected_mainstats = build_selected_mainstats(
-            build_data,
-            clock_choice,
-            goblet_choice,
-            circlet_choice
-        )
-
+if run_light:
+    selected_mainstats = build_selected_mainstats(
+        build_data,
+        clock_choice,
+        goblet_choice,
+        circlet_choice
+    )
         with st.spinner("計算中..."):
             result = run_custom_build_simulation(
                 character_name=character_name,
