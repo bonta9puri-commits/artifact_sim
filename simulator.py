@@ -137,7 +137,6 @@ character_builds = {
         "target_score": 180,
         "label": "実用ライン"
     }
-}
 
 }
 elixir_fixed_substats = {
