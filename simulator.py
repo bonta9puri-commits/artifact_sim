@@ -1,10 +1,11 @@
-import random
+import random from itertools import product
 
 # キャラデータ読み込み
 from character_data import character_builds
 
 # 部位
 parts = ["花", "羽", "時計", "杯", "冠"]
+set_names = ["セット1", "セット2"]
 
 # =========================
 # サブステ候補
@@ -94,7 +95,9 @@ def generate_artifact(part):
     weights = list(mainstat_weights[part].values())
     main = random.choices(candidates, weights=weights, k=1)[0]
 
-    num_substats = random.choice([3, 4])
+    artifact_set = random.choice(set_names)
+
+    num_substats = random.choices([3, 4], weights=[80, 20], k=1)[0]
     subs = random.sample(substat_pool, num_substats)
 
     substats = {}
@@ -111,6 +114,7 @@ def generate_artifact(part):
 
     return {
         "部位": part,
+        "セット": artifact_set,
         "メイン": main,
         "初期サブ": initial_substats,
         "サブ": substats,
@@ -170,6 +174,36 @@ def generate_elixir_artifact(part, mainstat, fixed_substats):
 # 振り直し（アップグレードだけ再抽選）
 # =========================
 def reroll_upgrade_only(artifact, reroll_times=10, score_weights=None):
+    def find_best_valid_combo(selected, required_set="セット1", min_count=4):
+    choices_per_part = []
+
+    for p in parts:
+        candidates = []
+
+        for set_name in set_names:
+            artifact = selected[p][set_name]
+            if artifact is not None:
+                candidates.append(artifact)
+
+        if not candidates:
+            return None, None
+
+        choices_per_part.append(candidates)
+
+    best_total = None
+    best_combo = None
+
+    for combo in product(*choices_per_part):
+        required_count = sum(1 for a in combo if a["セット"] == required_set)
+
+        if required_count >= min_count:
+            total = round(sum(a["スコア"] for a in combo), 1)
+
+            if best_total is None or total > best_total:
+                best_total = total
+                best_combo = combo
+
+    return best_total, best_combo
     best = {
         "部位": artifact["部位"],
         "メイン": artifact["メイン"],
@@ -216,7 +250,14 @@ def simulate_until_total_score_for_custom_build(
     reroll_times=10,
     max_attempts=100000
 ):
-    selected = {p: None for p in parts}
+    selected = {
+        p: {
+            "セット1": None,
+            "セット2": None
+        }
+        for p in parts
+    }
+
     reinforce_count = 0
 
     mainstats = build["mainstats"]
@@ -234,50 +275,66 @@ def simulate_until_total_score_for_custom_build(
                 calc_weighted_score(artifact["サブ"], score_weights), 1
             )
 
-            current = selected[part]
+            artifact_set = artifact["セット"]
+            current = selected[part][artifact_set]
+
             if current is None or artifact["スコア"] > current["スコア"]:
-                selected[part] = artifact
+                selected[part][artifact_set] = artifact
 
         # エリクシル
         if elixir_interval > 0 and reinforce_count % elixir_interval == 0:
-            if all(selected[p] is not None for p in parts):
-                weakest = min(parts, key=lambda p: selected[p]["スコア"])
+            best_total, best_combo = find_best_valid_combo(selected)
+
+            if best_combo is not None:
+                weakest_artifact = min(best_combo, key=lambda a: a["スコア"])
+                weakest_part = weakest_artifact["部位"]
+                weakest_set = weakest_artifact["セット"]
 
                 elixir = generate_elixir_artifact(
-                    weakest,
-                    mainstats[weakest],
-                    fixed_substats[weakest]
+                    weakest_part,
+                    mainstats[weakest_part],
+                    fixed_substats[weakest_part]
                 )
 
+                # エリクシルでもセットは維持
+                elixir["セット"] = weakest_set
                 elixir["スコア"] = round(
                     calc_weighted_score(elixir["サブ"], score_weights), 1
                 )
 
-                if elixir["スコア"] > selected[weakest]["スコア"]:
-                    selected[weakest] = elixir
+                current = selected[weakest_part][weakest_set]
+                if current is None or elixir["スコア"] > current["スコア"]:
+                    selected[weakest_part][weakest_set] = elixir
 
         # 振り直し
         if reroll_interval > 0 and reinforce_count % reroll_interval == 0:
-            if all(selected[p] is not None for p in parts):
-                weakest = min(parts, key=lambda p: selected[p]["スコア"])
+            best_total, best_combo = find_best_valid_combo(selected)
+
+            if best_combo is not None:
+                weakest_artifact = min(best_combo, key=lambda a: a["スコア"])
+                weakest_part = weakest_artifact["部位"]
+                weakest_set = weakest_artifact["セット"]
 
                 rerolled = reroll_upgrade_only(
-                    selected[weakest],
+                    weakest_artifact,
                     reroll_times=reroll_times,
                     score_weights=score_weights
                 )
 
-                if rerolled["スコア"] > selected[weakest]["スコア"]:
-                    selected[weakest] = rerolled
+                rerolled["セット"] = weakest_set
+
+                current = selected[weakest_part][weakest_set]
+                if current is None or rerolled["スコア"] > current["スコア"]:
+                    selected[weakest_part][weakest_set] = rerolled
 
         # 完成チェック
-        if all(selected[p] is not None for p in parts):
-            total = round(sum(selected[p]["スコア"] for p in parts), 1)
-            if total >= target_score:
-                return reinforce_count, total, selected
+        best_total, best_combo = find_best_valid_combo(selected)
+
+        if best_total is not None and best_total >= target_score:
+            best_selected = {artifact["部位"]: artifact for artifact in best_combo}
+            return reinforce_count, best_total, best_selected
 
     return None, None, selected
-
 # =========================
 # 単体シミュ用の簡易デフォルトビルド
 # =========================
