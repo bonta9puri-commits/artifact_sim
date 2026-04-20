@@ -321,6 +321,13 @@ elif mode == "シミュ":
             list(character_builds.keys())
         )
 
+        build_names = list(character_builds[character_name]["builds"].keys())
+
+        build_name = st.selectbox(
+            "ビルドを選択",
+            build_names
+        )
+
         resin_per_day = st.number_input(
             "1日の樹脂消費量",
             min_value=0,
@@ -341,8 +348,6 @@ elif mode == "シミュ":
 
         st.caption("1周あたり樹脂20で換算します。")
         st.caption("エリクシル・振り直しは標準設定です。")
-
-
     # =====================
     # 右：結果
     # =====================
@@ -353,6 +358,7 @@ elif mode == "シミュ":
             with st.spinner("計算中..."):
                 result = run_character_simulation(
                     character_name=character_name,
+                    build_name=build_name,
                     trials=trials,
                     elixir_interval=250,
                     reroll_interval=1000,
@@ -365,11 +371,10 @@ elif mode == "シミュ":
             # ===== キャラ情報 =====
             info_col1, info_col2, info_col3, info_col4 = st.columns(4)
             info_col1.metric("キャラ", result["character"])
-            info_col2.metric("元素", build["element"])
-            info_col3.metric("武器種", build["weapon"])
-            info_col4.metric("目標", result["label"])
-
-            st.markdown("---")
+            info_col2.metric("ビルド", result["build_name"])
+            info_col3.metric("元素", result["element"])
+            info_col4.metric("武器種", result["weapon"])
+                st.markdown("---")
 
             # ===== おすすめ構成 =====
             with st.expander("おすすめ構成を見る"):

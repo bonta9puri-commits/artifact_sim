@@ -76,77 +76,116 @@ character_builds = {
         "element": "水",
         "weapon": "片手剣",
         "role": "サブアタッカー",
-        "mainstats": {
-            "花": "HP",
-            "羽": "攻撃力",
-            "時計": "元素チャージ効率",
-            "杯": "HP%",
-            "冠": "会心ダメージ"
-        },
-        "elixir_fixed_substats": {
-            "花": ["会心率", "会心ダメージ"],
-            "羽": ["会心率", "会心ダメージ"],
-            "時計": ["会心率", "会心ダメージ"],
-            "杯": ["会心率", "会心ダメージ"],
-            "冠": ["会心率", "HP%"]
-        },
-        "target_score": 180,
-        "label": "実用ライン"
+        "builds": {
+            "HP/HP": {
+                "mainstats": {
+                    "花": "HP",
+                    "羽": "攻撃力",
+                    "時計": "HP%",
+                    "杯": "HP%",
+                    "冠": "会心ダメージ"
+                },
+                "elixir_fixed_substats": {
+                    "花": ["会心率", "会心ダメージ"],
+                    "羽": ["会心率", "会心ダメージ"],
+                    "時計": ["会心率", "会心ダメージ"],
+                    "杯": ["会心率", "会心ダメージ"],
+                    "冠": ["会心率", "HP%"]
+                },
+                "target_score": 180,
+                "label": "HP重視"
+            },
+            "チャージ/HP": {
+                "mainstats": {
+                    "花": "HP",
+                    "羽": "攻撃力",
+                    "時計": "元素チャージ効率",
+                    "杯": "HP%",
+                    "冠": "会心ダメージ"
+                },
+                "elixir_fixed_substats": {
+                    "花": ["会心率", "会心ダメージ"],
+                    "羽": ["会心率", "会心ダメージ"],
+                    "時計": ["会心率", "会心ダメージ"],
+                    "杯": ["会心率", "会心ダメージ"],
+                    "冠": ["会心率", "HP%"]
+                },
+                "target_score": 180,
+                "label": "チャージ/HP%"
+            },
+            "チャージ/水バフ": {
+                "mainstats": {
+                    "花": "HP",
+                    "羽": "攻撃力",
+                    "時計": "元素チャージ効率",
+                    "杯": "水ダメージ",
+                    "冠": "会心ダメージ"
+                },
+                "elixir_fixed_substats": {
+                    "花": ["会心率", "会心ダメージ"],
+                    "羽": ["会心率", "会心ダメージ"],
+                    "時計": ["会心率", "会心ダメージ"],
+                    "杯": ["会心率", "会心ダメージ"],
+                    "冠": ["会心率", "HP%"]
+                },
+                "target_score": 180,
+                "label": "チャージ/水バフ"
+            }
+        }
     },
 
     "ヌヴィレット": {
         "element": "水",
         "weapon": "法器",
         "role": "メインアタッカー",
-        "mainstats": {
-            "花": "HP",
-            "羽": "攻撃力",
-            "時計": "HP%",
-            "杯": "水ダメージ",
-            "冠": "会心ダメージ"
-        },
-        "elixir_fixed_substats": {
-            "花": ["会心率", "会心ダメージ"],
-            "羽": ["会心率", "会心ダメージ"],
-            "時計": ["会心率", "会心ダメージ"],
-            "杯": ["会心率", "会心ダメージ"],
-            "冠": ["会心率", "HP%"]
-        },
-        "target_score": 180,
-        "label": "実用ライン"
+        "builds": {
+            "HP/水バフ": {
+                "mainstats": {
+                    "花": "HP",
+                    "羽": "攻撃力",
+                    "時計": "HP%",
+                    "杯": "水ダメージ",
+                    "冠": "会心ダメージ"
+                },
+                "elixir_fixed_substats": {
+                    "花": ["会心率", "会心ダメージ"],
+                    "羽": ["会心率", "会心ダメージ"],
+                    "時計": ["会心率", "会心ダメージ"],
+                    "杯": ["会心率", "会心ダメージ"],
+                    "冠": ["会心率", "HP%"]
+                },
+                "target_score": 180,
+                "label": "標準"
+            }
+        }
     },
 
     "雷電将軍": {
         "element": "雷",
         "weapon": "長柄武器",
         "role": "メインアタッカー",
-        "mainstats": {
-            "花": "HP",
-            "羽": "攻撃力",
-            "時計": "元素チャージ効率",
-            "杯": "雷ダメージ",
-            "冠": "会心率"
-        },
-        "elixir_fixed_substats": {
-            "花": ["会心率", "会心ダメージ"],
-            "羽": ["会心率", "会心ダメージ"],
-            "時計": ["会心率", "会心ダメージ"],
-            "杯": ["会心率", "会心ダメージ"],
-            "冠": ["会心ダメージ", "攻撃%"]
-        },
-        "target_score": 180,
-        "label": "実用ライン"
+        "builds": {
+            "チャージ/雷バフ": {
+                "mainstats": {
+                    "花": "HP",
+                    "羽": "攻撃力",
+                    "時計": "元素チャージ効率",
+                    "杯": "雷ダメージ",
+                    "冠": "会心率"
+                },
+                "elixir_fixed_substats": {
+                    "花": ["会心率", "会心ダメージ"],
+                    "羽": ["会心率", "会心ダメージ"],
+                    "時計": ["会心率", "会心ダメージ"],
+                    "杯": ["会心率", "会心ダメージ"],
+                    "冠": ["会心ダメージ", "攻撃%"]
+                },
+                "target_score": 180,
+                "label": "標準"
+            }
+        }
     }
-
 }
-elixir_fixed_substats = {
-    "花": ["会心率", "会心ダメージ"],
-    "羽": ["会心率", "会心ダメージ"],
-    "時計": ["会心率", "会心ダメージ"],
-    "杯": ["会心率", "会心ダメージ"],
-    "冠": ["会心率", "HP%"]
-}
-
 def generate_mainstat(part):
     choices = list(mainstat_weights[part].keys())
     weights = list(mainstat_weights[part].values())
@@ -418,13 +457,15 @@ def simulate_until_total_score_for_build(
 
 def run_character_simulation(
     character_name,
+    build_name,
     trials=100,
-    elixir_interval=225,
-    reroll_interval=150,
-    reroll_times=1,
+    elixir_interval=250,
+    reroll_interval=1000,
+    reroll_times=10,
     max_attempts=100000
 ):
-    build = character_builds[character_name]
+    character_data = character_builds[character_name]
+    build = character_data["builds"][build_name]
     target_score = build["target_score"]
 
     results = []
@@ -447,6 +488,7 @@ def run_character_simulation(
     if not results:
         return {
             "character": character_name,
+            "build_name": build_name,
             "label": build["label"],
             "target_score": target_score,
             "success_count": 0,
@@ -456,7 +498,10 @@ def run_character_simulation(
             "top10": None,
             "bottom10": None,
             "results": [],
-            "mainstats": build["mainstats"]
+            "mainstats": build["mainstats"],
+            "element": character_data["element"],
+            "weapon": character_data["weapon"],
+            "role": character_data["role"]
         }
 
     results.sort()
@@ -474,6 +519,7 @@ def run_character_simulation(
 
     return {
         "character": character_name,
+        "build_name": build_name,
         "label": build["label"],
         "target_score": target_score,
         "success_count": success_count,
@@ -483,5 +529,8 @@ def run_character_simulation(
         "top10": top10,
         "bottom10": bottom10,
         "results": results,
-        "mainstats": build["mainstats"]
+        "mainstats": build["mainstats"],
+        "element": character_data["element"],
+        "weapon": character_data["weapon"],
+        "role": character_data["role"]
     }
