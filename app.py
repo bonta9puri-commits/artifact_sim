@@ -86,28 +86,6 @@ if mode == "運試し":
 
 
 # =========================
-# シミュモード
-# =========================
-elif mode == "シミュ":
-    st.subheader("シミュモード")
-    st.info("目標スコアに到達するまでに必要な試行回数をシミュレートします。")
-
-    left_col, right_col = st.columns([1, 1.5])
-
-    with left_col:
-        st.markdown("### 設定")
-
-        trials = st.number_input(
-            "シミュ回数",
-            min_value=10,
-            max_value=1000,
-            value=100,
-            step=10
-        )
-
-        elixir_interval = st.number_input(
-            "エリクシル使用間隔（0で使用しない）",
-            min_value=0,# =========================
 # かんたん診断モード
 # =========================
 elif mode == "かんたん診断":
@@ -141,7 +119,6 @@ elif mode == "かんたん診断":
             filtered_character_names
         )
 
-        # ===== ビルド選択 =====
         build_names = list(character_builds[character_name]["builds"].keys())
         build_name = st.selectbox(
             "ビルドを選択",
@@ -150,7 +127,6 @@ elif mode == "かんたん診断":
 
         build_data = character_builds[character_name]["builds"][build_name]
 
-        # ===== メインステ候補 =====
         clock_choice = st.selectbox(
             "時計",
             build_data["mainstat_options"]["時計"]
@@ -166,14 +142,12 @@ elif mode == "かんたん診断":
             build_data["mainstat_options"]["冠"]
         )
 
-        # ===== 評価タイプ =====
         score_mode_names = list(build_data["score_weight_options"].keys())
         score_mode = st.selectbox(
             "評価タイプ",
             score_mode_names
         )
 
-        # ===== 目標スコア =====
         target_score = st.slider(
             "目標スコア",
             min_value=120,
@@ -314,6 +288,31 @@ elif mode == "かんたん診断":
 
         else:
             st.info("左でキャラを選んで診断を開始してください。")
+
+
+# =========================
+# シミュモード
+# =========================
+elif mode == "シミュ":
+    st.subheader("シミュモード")
+    st.info("目標スコアに到達するまでに必要な試行回数をシミュレートします。")
+
+    left_col, right_col = st.columns([1, 1.5])
+
+    with left_col:
+        st.markdown("### 設定")
+
+        trials = st.number_input(
+            "シミュ回数",
+            min_value=10,
+            max_value=1000,
+            value=100,
+            step=10
+        )
+
+        elixir_interval = st.number_input(
+            "エリクシル使用間隔（0で使用しない）",
+            min_value=0,
             max_value=5000,
             value=250,
             step=50
@@ -368,9 +367,6 @@ elif mode == "かんたん診断":
     with right_col:
         st.markdown("### 結果")
 
-        # -------------------------
-        # 単体シミュ
-        # -------------------------
         if run_single:
             with st.spinner("計算中..."):
                 result = run_multiple_simulations(
@@ -412,9 +408,6 @@ elif mode == "かんたん診断":
 
             st.caption("※シミュ結果は簡易モデルです。実際のゲーム内体感と完全一致するものではありません。")
 
-        # -------------------------
-        # 比較シミュ
-        # -------------------------
         elif run_compare:
             compare_targets = [180, 200, 240]
             compare_results = []
