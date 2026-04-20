@@ -94,7 +94,28 @@ elif mode == "かんたん診断":
 
     with left_col:
         st.markdown("### 設定")
+        
+        element_filter = st.selectbox(
+    "元素で絞り込み",
+    ["すべて", "炎", "水", "雷", "氷", "風", "岩", "草"]
+)
 
+if element_filter == "すべて":
+    filtered_character_names = sorted(character_builds.keys())
+else:
+    filtered_character_names = sorted(
+        name for name, data in character_builds.items()
+        if data.get("element") == element_filter
+    )
+
+if not filtered_character_names:
+    st.warning("この元素のキャラはまだ登録されていません。")
+    st.stop()
+
+character_name = st.selectbox(
+    "キャラを選択",
+    filtered_character_names
+)
         # ===== キャラ選択 =====
         character_name = st.selectbox(
             "キャラを選択",
