@@ -87,49 +87,106 @@ elif mode == "かんたん診断":
 
     left_col, right_col = st.columns([1, 1.5])
 
-    with left_col:
-        st.markdown("### 設定")
+with left_col:
+    st.markdown("### 設定")
 
-        character_name = st.selectbox(
-            "キャラを選択",
-            list(character_builds.keys())
-        )
+    # ===== キャラ選択 =====
+    character_name = st.selectbox(
+        "キャラを選択",
+        list(character_builds.keys())
+    )
 
-        resin_per_day = st.number_input(
-            "1日の樹脂消費量",
-            min_value=20,
-            max_value=400,
-            value=160,
-            step=20
-        )
+    # ===== ビルド選択 =====
+    build_names = list(character_builds[character_name]["builds"].keys())
+    build_name = st.selectbox(
+        "ビルドを選択",
+        build_names
+    )
 
-        trials = st.number_input(
-            "シミュ回数",
-            min_value=10,
-            max_value=300,
-            value=50,
-            step=10,
-            key="light_trials"
-        )
+    build_data = character_builds[character_name]["builds"][build_name]
 
-        run_light = st.button("かんたん診断開始", use_container_width=True, type="primary")
+    # ===== メインステ候補 =====
+    clock_choice = st.selectbox(
+        "時計",
+        build_data["mainstat_options"]["時計"]
+    )
 
-        st.caption("1周あたり樹脂20で換算します。")
-        st.caption("標準設定として、エリクシル・振り直しは既定値を使います。")
+    goblet_choice = st.selectbox(
+        "杯",
+        build_data["mainstat_options"]["杯"]
+    )
+
+    circlet_choice = st.selectbox(
+        "冠",
+        build_data["mainstat_options"]["冠"]
+    )
+
+    # ===== 評価タイプ =====
+    score_mode_names = list(build_data["score_weight_options"].keys())
+    score_mode = st.selectbox(
+        "評価タイプ",
+        score_mode_names
+    )
+
+    # ===== 目標スコア =====
+    target_score = st.slider(
+        "目標スコア",
+        min_value=120,
+        max_value=260,
+        value=build_data["default_target_score"],
+        step=10
+    )
+
+    resin_per_day = st.number_input(
+        "1日の樹脂消費量",
+        min_value=0,
+        max_value=300,
+        value=180,
+        step=20
+    )
+
+    trials = st.number_input(
+        "シミュ回数",
+        min_value=10,
+        max_value=5000,
+        value=50,
+        step=10
+    )
+
+    run_light = st.button("目安を見る", use_container_width=True)
+
+    st.caption("1周あたり樹脂20で換算します。")
+    st.caption("エリクシル・振り直しは標準設定です。")
+    st.caption("目安：180=実用 / 200=強い / 220+=ガチ")
 
     with right_col:
-        st.markdown("### 結果")
+    st.markdown("### 結果")
 
-        if run_light:
-            with st.spinner("計算中..."):
-                result = run_character_simulation(
-                    character_name=character_name,
-                    trials=trials,
-                    elixir_interval=250,
-                    reroll_interval=1000,
-                    reroll_times=10,
-                    max_attempts=100000
-                )
+    if run_light:
+        selected_mainstats = build_selected_mainstats(
+            build_data,
+            clock_choice,
+            goblet_choice,
+            circlet_choice
+        )
+
+        with st.spinner("計算中..."):
+            result = run_custom_build_simulation(
+                character_name=character_name,
+                build_name=build_name,
+                selected_mainstats=selected_mainstats,
+                score_mode=score_mode,
+                trials=trials,
+                target_score=target_score,
+                elixir_interval=250,
+                reroll_interval=1000,
+                reroll_times=reroll_times,
+                max_attempts=max_attempts
+            )
+
+        st.write(result)  # ← とりあえずこれで確認
+
+from simulator import build_selected_mainstats, run_custom_build_simulation
 
             st.markdown(f"#### {result['character']}｜{result['label']}（目標スコア {result['target_score']}）")
 
