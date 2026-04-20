@@ -67,8 +67,9 @@ def generate_artifact(part):
     return {
         "部位": part,
         "メイン": main,
+        "初期サブ": substats.copy(),
         "サブ": substats,
-        "スコア": 0  # 後で計算
+        "スコア": 0
     }
 
 # =========================
@@ -98,11 +99,12 @@ def generate_elixir_artifact(part, mainstat, fixed_substats):
 
     # 固定サブステ
     for s in fixed_substats:
-        substats[s] = random.choice(substat_values[s])
+        if s in substat_values:
+            substats[s] = random.choice(substat_values[s])
 
     # 残りサブステをランダム追加（最大4個）
     remaining = [s for s in substat_pool if s not in substats]
-    while len(substats) < 4:
+    while len(substats) < 4 and remaining:
         s = random.choice(remaining)
         substats[s] = random.choice(substat_values[s])
         remaining.remove(s)
@@ -115,19 +117,29 @@ def generate_elixir_artifact(part, mainstat, fixed_substats):
     return {
         "部位": part,
         "メイン": mainstat,
+        "初期サブ": substats.copy(),
         "サブ": substats,
         "スコア": 0
     }
 
-
 # =========================
 # 振り直し（アップグレードだけ再抽選）
 # =========================
-def reroll_upgrade_only(artifact, reroll_times=10):
-    best = artifact
+def reroll_upgrade_only(artifact, reroll_times=10, score_weights=None):
+    best = {
+        "部位": artifact["部位"],
+        "メイン": artifact["メイン"],
+        "初期サブ": dict(artifact.get("初期サブ", artifact["サブ"])),
+        "サブ": dict(artifact["サブ"]),
+        "スコア": artifact.get("スコア", 0)
+    }
 
+    base_sub = dict(artifact.get("初期サブ", artifact["サブ"]))
+
+    # もとの聖遺物が3OPか4OPかの厳密判定は今はしていないので、
+    # 簡易的に5回分の振り直しとして扱う
     for _ in range(reroll_times):
-        new_sub = dict(artifact["サブ"])
+        new_sub = dict(base_sub)
 
         for _ in range(5):
             s = random.choice(list(new_sub.keys()))
@@ -136,15 +148,18 @@ def reroll_upgrade_only(artifact, reroll_times=10):
         candidate = {
             "部位": artifact["部位"],
             "メイン": artifact["メイン"],
+            "初期サブ": dict(base_sub),
             "サブ": new_sub,
             "スコア": 0
         }
+
+        if score_weights is not None:
+            candidate["スコア"] = round(calc_weighted_score(candidate["サブ"], score_weights), 1)
 
         if candidate["スコア"] > best["スコア"]:
             best = candidate
 
     return best
-
 
 # =========================
 # カスタムビルド用シミュ
@@ -204,11 +219,8 @@ def simulate_until_total_score_for_custom_build(
 
                 rerolled = reroll_upgrade_only(
                     selected[weakest],
-                    reroll_times=reroll_times
-                )
-
-                rerolled["スコア"] = round(
-                    calc_weighted_score(rerolled["サブ"], score_weights), 1
+                    reroll_times=reroll_times,
+                    score_weights=score_weights
                 )
 
                 if rerolled["スコア"] > selected[weakest]["スコア"]:
@@ -222,9 +234,105 @@ def simulate_until_total_score_for_custom_build(
 
     return None, None, selected
 
+# =========================
+# 単体シミュ用の簡易デフォルトビルド
+# =========================
+def simulate_until_total_score(
+    target_score=180,
+    elixir_interval=250,
+    reroll_interval=1000,
+    reroll_times=10,
+    max_attempts=100000
+):
+    default_build = {
+        "mainstats": {
+            "花": "HP",
+            "羽": "攻撃力",
+            "時計": "攻撃%",
+            "杯": "攻撃%",
+            "冠": "会心ダメージ"
+        },
+        "elixir_fixed_substats": {
+            "花": ["会心率", "会心ダメージ"],
+            "羽": ["会心率", "会心ダメージ"],
+            "時計": ["会心率", "会心ダメージ"],
+            "杯": ["会心率", "会心ダメージ"],
+            "冠": ["会心率", "会心ダメージ"]
+        },
+        "score_weights": {
+            "会心率": 2.0,
+            "会心ダメージ": 1.0,
+            "攻撃%": 1.0
+        }
+    }
+
+    return simulate_until_total_score_for_custom_build(
+        build=default_build,
+        target_score=target_score,
+        elixir_interval=elixir_interval,
+        reroll_interval=reroll_interval,
+        reroll_times=reroll_times,
+        max_attempts=max_attempts
+    )
 
 # =========================
 # 複数回シミュ
+# =========================
+def run_multiple_simulations(
+    trials=100,
+    target_score=180,
+    elixir_interval=250,
+    reroll_interval=1000,
+    reroll_times=10,
+    max_attempts=100000
+):
+    results = []
+    success_count = 0
+
+    for _ in range(trials):
+        count, _, _ = simulate_until_total_score(
+            target_score=target_score,
+            elixir_interval=elixir_interval,
+            reroll_interval=reroll_interval,
+            reroll_times=reroll_times,
+            max_attempts=max_attempts
+        )
+
+        if count is not None:
+            results.append(count)
+            success_count += 1
+
+    if not results:
+        return {
+            "success_count": 0,
+            "success_rate": 0,
+            "average": None,
+            "median": None,
+            "top10": None,
+            "bottom10": None,
+            "results": []
+        }
+
+    results.sort()
+    n = len(results)
+
+    avg = sum(results) / n
+    median = results[n // 2] if n % 2 else (results[n // 2 - 1] + results[n // 2]) / 2
+    top10 = results[int(n * 0.1)]
+    bottom10 = results[int(n * 0.9)]
+
+    return {
+        "success_count": success_count,
+        "success_rate": success_count / trials,
+        "average": round(avg, 1),
+        "median": median,
+        "top10": top10,
+        "bottom10": bottom10,
+        "results": results
+    }
+
+# =========================
+# カスタムビルド複数回シミュ
 # =========================
 def run_custom_build_simulation(
     character_name,
@@ -266,6 +374,10 @@ def run_custom_build_simulation(
 
     if not results:
         return {
+            "character": character_name,
+            "label": build_name,
+            "target_score": target_score,
+            "mainstats": selected_mainstats,
             "average": None,
             "median": None,
             "top10": None,
@@ -278,11 +390,15 @@ def run_custom_build_simulation(
     n = len(results)
 
     avg = sum(results) / n
-    median = results[n // 2] if n % 2 else (results[n//2-1] + results[n//2]) / 2
+    median = results[n // 2] if n % 2 else (results[n // 2 - 1] + results[n // 2]) / 2
     top10 = results[int(n * 0.1)]
     bottom10 = results[int(n * 0.9)]
 
     return {
+        "character": character_name,
+        "label": build_name,
+        "target_score": target_score,
+        "mainstats": selected_mainstats,
         "average": round(avg, 1),
         "median": median,
         "top10": top10,
@@ -290,3 +406,44 @@ def run_custom_build_simulation(
         "results": results,
         "success_rate": success_count / trials
     }
+
+# =========================
+# キャラ用簡易シミュ
+# =========================
+def run_character_simulation(
+    character_name,
+    build_name,
+    trials=100,
+    elixir_interval=250,
+    reroll_interval=1000,
+    reroll_times=10,
+    max_attempts=100000
+):
+    character_data = character_builds[character_name]
+    build_data = character_data["builds"][build_name]
+
+    selected_mainstats = dict(build_data["fixed_mainstats"])
+    selected_mainstats["時計"] = build_data["mainstat_options"]["時計"][0]
+    selected_mainstats["杯"] = build_data["mainstat_options"]["杯"][0]
+    selected_mainstats["冠"] = build_data["mainstat_options"]["冠"][0]
+
+    score_mode = list(build_data["score_weight_options"].keys())[0]
+
+    result = run_custom_build_simulation(
+        character_name=character_name,
+        build_name=build_name,
+        selected_mainstats=selected_mainstats,
+        score_mode=score_mode,
+        trials=trials,
+        target_score=build_data["default_target_score"],
+        elixir_interval=elixir_interval,
+        reroll_interval=reroll_interval,
+        reroll_times=reroll_times,
+        max_attempts=max_attempts
+    )
+
+    result["build_name"] = build_name
+    result["element"] = character_data.get("element", "-")
+    result["weapon"] = character_data.get("weapon", "-")
+
+    return result
