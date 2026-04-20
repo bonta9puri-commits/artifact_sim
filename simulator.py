@@ -1,4 +1,5 @@
-import random from itertools import product
+import random
+from itertools import product
 
 # キャラデータ読み込み
 from character_data import character_builds
@@ -173,8 +174,7 @@ def generate_elixir_artifact(part, mainstat, fixed_substats):
 # =========================
 # 振り直し（アップグレードだけ再抽選）
 # =========================
-def reroll_upgrade_only(artifact, reroll_times=10, score_weights=None):
-    def find_best_valid_combo(selected, required_set="セット1", min_count=4):
+def find_best_valid_combo(selected, required_set="セット1", min_count=4):
     choices_per_part = []
 
     for p in parts:
@@ -204,13 +204,7 @@ def reroll_upgrade_only(artifact, reroll_times=10, score_weights=None):
                 best_combo = combo
 
     return best_total, best_combo
-    best = {
-        "部位": artifact["部位"],
-        "メイン": artifact["メイン"],
-        "初期サブ": dict(artifact.get("初期サブ", artifact["サブ"])),
-        "サブ": dict(artifact["サブ"]),
-        "スコア": artifact.get("スコア", 0)
-    }
+def reroll_upgrade_only(artifact, reroll_times=10, score_weights=None):
 
     base_sub = dict(artifact.get("初期サブ", artifact["サブ"]))
 
