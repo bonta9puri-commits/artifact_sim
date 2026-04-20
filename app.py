@@ -303,106 +303,127 @@ elif mode == "シミュ":
         # -------------------------
         # 比較シミュ
         # -------------------------
-        elif run_compare:
-            targets = [180, 200, 240]
-            compare_results = {}
+        elif mode == "かんたん診断":
+    st.subheader("かんたん診断")
 
-            progress = st.progress(0)
-            status_text = st.empty()
+    st.info("キャラを選ぶだけで、標準設定での厳選の目安をざっくり確認できます。")
 
-            for i, target in enumerate(targets):
-                status_text.write(f"目標スコア {target} を計算中...")
-                compare_results[target] = run_multiple_simulations(
+    left_col, right_col = st.columns([1, 1.5])
+
+    # =====================
+    # 左：設定
+    # =====================
+    with left_col:
+        st.markdown("### 設定")
+
+        character_name = st.selectbox(
+            "キャラを選択",
+            list(character_builds.keys())
+        )
+
+        resin_per_day = st.number_input(
+            "1日の樹脂消費量",
+            min_value=0,
+            max_value=300,
+            value=180,
+            step=20
+        )
+
+        trials = st.number_input(
+            "シミュ回数",
+            min_value=10,
+            max_value=5000,
+            value=50,
+            step=10
+        )
+
+        run_light = st.button("目安を見る", use_container_width=True)
+
+        st.caption("1周あたり樹脂20で換算します。")
+        st.caption("エリクシル・振り直しは標準設定です。")
+
+    # =====================
+    # 右：結果
+    # =====================
+    with right_col:
+        st.markdown("### 結果")
+
+        if run_light:
+            with st.spinner("計算中..."):
+                result = run_character_simulation(
+                    character_name=character_name,
                     trials=trials,
-                    target_score=target,
-                    elixir_interval=elixir_interval,
-                    reroll_interval=reroll_interval,
-                    reroll_times=reroll_times,
-                    max_attempts=max_attempts
+                    elixir_interval=250,
+                    reroll_interval=1000,
+                    reroll_times=10,
+                    max_attempts=100000
                 )
-                progress.progress((i + 1) / len(targets))
 
-            status_text.write("比較シミュ完了")
+            build = character_builds[character_name]
 
-            st.markdown("#### 結論")
-            for target in targets:
-                avg = compare_results[target]["average"]
-                if avg is None:
-                    st.write(f"{target} → 到達なし")
+            # ===== キャラ情報 =====
+            info_col1, info_col2, info_col3, info_col4 = st.columns(4)
+            info_col1.metric("キャラ", result["character"])
+            info_col2.metric("元素", build["element"])
+            info_col3.metric("武器種", build["weapon"])
+            info_col4.metric("目標", result["label"])
+
+            st.markdown("---")
+
+            # ===== おすすめ構成 =====
+            with st.expander("おすすめ構成を見る"):
+                st.write(result["mainstats"])
+
+            if result["average"] is None:
+                st.warning("この条件では最大試行回数内に到達しませんでした。")
+            else:
+                runs_per_day = resin_per_day / 20
+
+                avg_days = result["average"] / runs_per_day
+                top10_days = result["top10"] / runs_per_day
+                bottom10_days = result["bottom10"] / runs_per_day
+
+                # ===== 結論 =====
+                st.markdown("#### 結論")
+
+                day_col1, day_col2, day_col3 = st.columns(3)
+                day_col1.metric("平均日数", f"{avg_days:.1f} 日")
+                day_col2.metric("上位10%", f"{top10_days:.1f} 日")
+                day_col3.metric("下位10%", f"{bottom10_days:.1f} 日")
+
+                st.caption("樹脂20で1周換算")
+
+                # ===== 一言評価 =====
+                if avg_days <= 14:
+                    st.success("比較的現実的です")
+                elif avg_days <= 30:
+                    st.warning("少し重めです")
                 else:
-                    st.write(f"{target} → 平均 {avg} 回")
+                    st.error("かなり重いです")
 
-            for target in targets:
-                result = compare_results[target]
+                # ===== 詳細 =====
+                with st.expander("詳細データを見る"):
+                    detail_col1, detail_col2, detail_col3, detail_col4 = st.columns(4)
+                    detail_col1.metric("平均回数", f"{result['average']} 回")
+                    detail_col2.metric("中央値", result["median"])
+                    detail_col3.metric("上位10%回数", result["top10"])
+                    detail_col4.metric("下位10%回数", result["bottom10"])
 
-                st.markdown(f"#### 目標スコア {target}")
+                # ===== グラフ =====
+                st.markdown("#### 分布")
+                fig, ax = plt.subplots()
+                ax.hist(result["results"], bins=20)
+                ax.axvline(result["average"], linestyle="--", label="平均")
+                ax.axvline(result["median"], linestyle=":", label="中央値")
+                ax.set_title(f"{result['character']} の試行回数分布")
+                ax.set_xlabel("強化回数")
+                ax.set_ylabel("件数")
+                ax.legend()
+                st.pyplot(fig)
 
-                success_col1, success_col2 = st.columns(2)
-                success_col1.metric("成功回数", f"{result['success_count']} / {trials}")
-                success_col2.metric("成功率", f"{result['success_rate'] * 100:.1f}%")
+                st.caption("右に長いほど、沼りやすい条件です。")
 
-                if result["average"] is None:
-                    st.warning("最大試行回数内に到達しませんでした。")
-                else:
-                    metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
-                    metric_col1.metric("平均", result["average"])
-                    metric_col2.metric("中央値", result["median"])
-                    metric_col3.metric("上位10%", result["top10"])
-                    metric_col4.metric("下位10%", result["bottom10"])
-
-                    if result["average"] > 50000:
-                        st.error("かなり非現実的")
-                    elif result["average"] > 10000:
-                        st.warning("かなり厳しい")
-                    else:
-                        st.success("比較的現実的")
-
-            st.markdown("#### 平均回数の比較")
-
-            labels = []
-            averages = []
-
-            for target in targets:
-                result = compare_results[target]
-                labels.append(str(target))
-                averages.append(result["average"] if result["average"] is not None else 0)
-
-            fig_bar, ax_bar = plt.subplots()
-            ax_bar.bar(labels, averages)
-            ax_bar.set_title("目標スコアごとの平均試行回数")
-            ax_bar.set_xlabel("目標スコア")
-            ax_bar.set_ylabel("平均試行回数")
-            st.pyplot(fig_bar)
-
-            st.markdown("#### 分布の比較")
-
-            fig_hist, axes = plt.subplots(3, 1, figsize=(8, 12))
-
-            for i, target in enumerate(targets):
-                result = compare_results[target]
-                ax = axes[i]
-
-                if result["results"]:
-                    ax.hist(result["results"], bins=20)
-                    if result["average"] is not None:
-                        ax.axvline(result["average"], linestyle="--", label="平均")
-                    if result["median"] is not None:
-                        ax.axvline(result["median"], linestyle=":", label="中央値")
-
-                    ax.set_title(f"目標スコア {target}")
-                    ax.set_xlabel("強化回数")
-                    ax.set_ylabel("件数")
-                    ax.legend()
-                else:
-                    ax.set_title(f"目標スコア {target}（到達なし）")
-                    ax.set_xlabel("強化回数")
-                    ax.set_ylabel("件数")
-
-            plt.tight_layout()
-            st.pyplot(fig_hist)
-
-            st.caption("右に長いほど、沼りやすい条件です。")
             st.caption("※シミュ結果は簡易モデルです。実際のゲーム内体感と完全一致するものではありません。")
 
         else:
-            st.info("左で条件を設定してシミュを開始してください。")
+            st.info("左でキャラを選ぶと、平均日数の目安を表示します。")
