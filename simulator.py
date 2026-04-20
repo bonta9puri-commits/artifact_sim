@@ -71,6 +71,75 @@ target_mainstats = {
     "冠": "会心ダメージ"
 }
 
+character_builds = {
+    "フリーナ": {
+        "element": "水",
+        "weapon": "片手剣",
+        "role": "サブアタッカー",
+        "mainstats": {
+            "花": "HP",
+            "羽": "攻撃力",
+            "時計": "元素チャージ効率",
+            "杯": "HP%",
+            "冠": "会心ダメージ"
+        },
+        "elixir_fixed_substats": {
+            "花": ["会心率", "会心ダメージ"],
+            "羽": ["会心率", "会心ダメージ"],
+            "時計": ["会心率", "会心ダメージ"],
+            "杯": ["会心率", "会心ダメージ"],
+            "冠": ["会心率", "HP%"]
+        },
+        "target_score": 180,
+        "label": "実用ライン"
+    },
+
+    "ヌヴィレット": {
+        "element": "水",
+        "weapon": "法器",
+        "role": "メインアタッカー",
+        "mainstats": {
+            "花": "HP",
+            "羽": "攻撃力",
+            "時計": "HP%",
+            "杯": "水ダメージ",
+            "冠": "会心ダメージ"
+        },
+        "elixir_fixed_substats": {
+            "花": ["会心率", "会心ダメージ"],
+            "羽": ["会心率", "会心ダメージ"],
+            "時計": ["会心率", "会心ダメージ"],
+            "杯": ["会心率", "会心ダメージ"],
+            "冠": ["会心率", "HP%"]
+        },
+        "target_score": 180,
+        "label": "実用ライン"
+    },
+
+    "雷電将軍": {
+        "element": "雷",
+        "weapon": "長柄武器",
+        "role": "メインアタッカー",
+        "mainstats": {
+            "花": "HP",
+            "羽": "攻撃力",
+            "時計": "元素チャージ効率",
+            "杯": "雷ダメージ",
+            "冠": "会心率"
+        },
+        "elixir_fixed_substats": {
+            "花": ["会心率", "会心ダメージ"],
+            "羽": ["会心率", "会心ダメージ"],
+            "時計": ["会心率", "会心ダメージ"],
+            "杯": ["会心率", "会心ダメージ"],
+            "冠": ["会心ダメージ", "攻撃%"]
+        },
+        "target_score": 180,
+        "label": "実用ライン"
+    }
+}
+
+}
 elixir_fixed_substats = {
     "花": ["会心率", "会心ダメージ"],
     "羽": ["会心率", "会心ダメージ"],
@@ -283,4 +352,137 @@ def run_multiple_simulations(
         "top10": top10,
         "bottom10": bottom10,
         "results": results
+    }
+
+def simulate_until_total_score_for_build(
+    build,
+    target_score=None,
+    elixir_interval=250,
+    reroll_interval=1000,
+    reroll_times=10,
+    max_attempts=100000
+):
+    selected = {p: None for p in parts}
+    reinforce_count = 0
+
+    mainstats = build["mainstats"]
+    fixed_substats = build["elixir_fixed_substats"]
+
+    if target_score is None:
+        target_score = build["target_score"]
+
+    while reinforce_count < max_attempts:
+        part = random.choice(parts)
+        artifact = generate_artifact(part)
+        reinforce_count += 1
+
+        # 指定メインだけ採用
+        if artifact["メイン"] == mainstats[part]:
+            current = selected[part]
+            if current is None or artifact["スコア"] > current["スコア"]:
+                selected[part] = artifact
+
+        # エリクシル
+        if elixir_interval > 0 and reinforce_count % elixir_interval == 0:
+            if all(selected[p] is not None for p in parts):
+                weakest_part = min(parts, key=lambda p: selected[p]["スコア"])
+
+                elixir_artifact = generate_elixir_artifact(
+                    weakest_part,
+                    mainstats[weakest_part],
+                    fixed_substats[weakest_part]
+                )
+
+                if elixir_artifact["スコア"] > selected[weakest_part]["スコア"]:
+                    selected[weakest_part] = elixir_artifact
+
+        # 振り直し
+        if reroll_interval > 0 and reinforce_count % reroll_interval == 0:
+            if all(selected[p] is not None for p in parts):
+                weakest_part = min(parts, key=lambda p: selected[p]["スコア"])
+
+                rerolled_artifact = reroll_upgrade_only(
+                    selected[weakest_part],
+                    reroll_times=reroll_times
+                )
+
+                if rerolled_artifact["スコア"] > selected[weakest_part]["スコア"]:
+                    selected[weakest_part] = rerolled_artifact
+
+        # 完成判定
+        if all(selected[p] is not None for p in parts):
+            total_score = round(sum(selected[p]["スコア"] for p in parts), 1)
+            if total_score >= target_score:
+                return reinforce_count, total_score, selected
+
+    return None, None, selected
+
+def run_character_simulation(
+    character_name,
+    trials=100,
+    elixir_interval=250,
+    reroll_interval=1000,
+    reroll_times=10,
+    max_attempts=100000
+):
+    build = character_builds[character_name]
+    target_score = build["target_score"]
+
+    results = []
+    success_count = 0
+
+    for _ in range(trials):
+        count, _, _ = simulate_until_total_score_for_build(
+            build=build,
+            target_score=target_score,
+            elixir_interval=elixir_interval,
+            reroll_interval=reroll_interval,
+            reroll_times=reroll_times,
+            max_attempts=max_attempts
+        )
+
+        if count is not None:
+            results.append(count)
+            success_count += 1
+
+    if not results:
+        return {
+            "character": character_name,
+            "label": build["label"],
+            "target_score": target_score,
+            "success_count": 0,
+            "success_rate": 0.0,
+            "average": None,
+            "median": None,
+            "top10": None,
+            "bottom10": None,
+            "results": [],
+            "mainstats": build["mainstats"]
+        }
+
+    results.sort()
+    n = len(results)
+
+    average = sum(results) / n
+
+    if n % 2 == 1:
+        median = results[n // 2]
+    else:
+        median = (results[n // 2 - 1] + results[n // 2]) / 2
+
+    top10 = results[min(n - 1, int(n * 0.1))]
+    bottom10 = results[min(n - 1, int(n * 0.9))]
+
+    return {
+        "character": character_name,
+        "label": build["label"],
+        "target_score": target_score,
+        "success_count": success_count,
+        "success_rate": success_count / trials,
+        "average": round(average, 1),
+        "median": median,
+        "top10": top10,
+        "bottom10": bottom10,
+        "results": results,
+        "mainstats": build["mainstats"]
     }
