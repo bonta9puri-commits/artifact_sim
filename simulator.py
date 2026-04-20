@@ -205,30 +205,39 @@ def find_best_valid_combo(selected, required_set="セット1", min_count=4):
 
     return best_total, best_combo
 def reroll_upgrade_only(artifact, reroll_times=10, score_weights=None):
+    best = {
+        "部位": artifact["部位"],
+        "セット": artifact.get("セット"),
+        "メイン": artifact["メイン"],
+        "初期サブ": dict(artifact.get("初期サブ", artifact["サブ"])),
+        "サブ": dict(artifact["サブ"]),
+        "スコア": artifact.get("スコア", 0)
+    }
 
     base_sub = dict(artifact.get("初期サブ", artifact["サブ"]))
 
-    # もとの聖遺物が3OPか4OPかの厳密判定は今はしていないので、
-    # 簡易的に5回分の振り直しとして扱う
     for _ in range(reroll_times):
         new_sub = dict(base_sub)
 
+        # 3OP/4OPを厳密に持っていないので簡易的に5回振り直し
         for _ in range(5):
             s = random.choice(list(new_sub.keys()))
             new_sub[s] += random.choice(substat_values[s])
 
+        candidate_score = 0
+        if score_weights is not None:
+            candidate_score = round(calc_weighted_score(new_sub, score_weights), 1)
+
         candidate = {
             "部位": artifact["部位"],
+            "セット": artifact.get("セット"),
             "メイン": artifact["メイン"],
             "初期サブ": dict(base_sub),
             "サブ": new_sub,
-            "スコア": 0
+            "スコア": candidate_score
         }
 
-        if score_weights is not None:
-            candidate["スコア"] = round(calc_weighted_score(candidate["サブ"], score_weights), 1)
-
-        if candidate["スコア"] > best["スコア"]:
+        if candidate["スコア"] > best.get("スコア", 0):
             best = candidate
 
     return best
