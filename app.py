@@ -157,7 +157,7 @@ elif mode == "かんたん診断":
         )
 
         # 標準設定
-        reroll_times = 10
+        reroll_times = 1
         max_attempts = 100000
 
         run_light = st.button("目安を見る", use_container_width=True, type="primary")
