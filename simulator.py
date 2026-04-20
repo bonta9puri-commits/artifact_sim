@@ -243,9 +243,9 @@ def generate_elixir_artifact(part, mainstat, fixed_substats):
 
 def simulate_until_total_score(
     target_score=180,
-    elixir_interval=250,
-    reroll_interval=1000,
-    reroll_times=10,
+    elixir_interval=225,
+    reroll_interval=150,
+    reroll_times=1,
     max_attempts=100000
 ):
     selected = {p: None for p in parts}
@@ -299,9 +299,9 @@ def simulate_until_total_score(
 def run_multiple_simulations(
     trials=100,
     target_score=180,
-    elixir_interval=250,
-    reroll_interval=1000,
-    reroll_times=10,
+    elixir_interval=225,
+    reroll_interval=150,
+    reroll_times=1,
     max_attempts=100000
 ):
     results = []
@@ -356,9 +356,9 @@ def run_multiple_simulations(
 def simulate_until_total_score_for_build(
     build,
     target_score=None,
-    elixir_interval=250,
-    reroll_interval=1000,
-    reroll_times=10,
+    elixir_interval=225,
+    reroll_interval=150,
+    reroll_times=1,
     max_attempts=100000
 ):
     selected = {p: None for p in parts}
@@ -419,9 +419,9 @@ def simulate_until_total_score_for_build(
 def run_character_simulation(
     character_name,
     trials=100,
-    elixir_interval=250,
-    reroll_interval=1000,
-    reroll_times=10,
+    elixir_interval=225,
+    reroll_interval=150,
+    reroll_times=1,
     max_attempts=100000
 ):
     build = character_builds[character_name]
