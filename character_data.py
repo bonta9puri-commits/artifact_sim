@@ -18,7 +18,8 @@ character_builds = {
                         "会心率": 2.0,
                         "会心ダメージ": 1.0,
                         "攻撃%": 1.0,
-                        "元素チャージ効率": 0.0
+                        "元素チャージ効率": 0.2,
+                        "元素熟知": 0.2
                     }
                 },
                 "elixir_fixed_substats": {
@@ -28,7 +29,7 @@ character_builds = {
                     "杯": ["会心率", "会心ダメージ"],
                     "冠": ["会心率", "会心ダメージ"]
                 },
-                "default_target_score": 180
+                "default_target_score": 200
             }
         }
     },
@@ -52,7 +53,7 @@ character_builds = {
                         "会心率": 2.0,
                         "会心ダメージ": 1.0,
                         "HP%": 1.0,
-                        "元素チャージ効率": 0.0
+                        "元素チャージ効率": 0.8
                     }
                 },
                 "elixir_fixed_substats": {
@@ -86,7 +87,8 @@ character_builds = {
                         "会心率": 2.0,
                         "会心ダメージ": 1.0,
                         "攻撃%": 1.0,
-                        "元素チャージ効率": 0.0
+                        "元素チャージ効率": 0.2,
+                        "元素熟知": 0.2
                     }
                 },
                 "elixir_fixed_substats": {
@@ -96,7 +98,7 @@ character_builds = {
                     "杯": ["会心率", "会心ダメージ"],
                     "冠": ["会心率", "会心ダメージ"]
                 },
-                "default_target_score": 180
+                "default_target_score": 200
             }
         }
     },
@@ -119,7 +121,8 @@ character_builds = {
                     "火力重視": {
                         "会心率": 2.0,
                         "会心ダメージ": 1.0,
-                        "攻撃%": 1.0
+                        "攻撃%": 1.0,
+                        "元素チャージ効率": 0.2
                     }
                 },
                 "elixir_fixed_substats": {
@@ -129,7 +132,7 @@ character_builds = {
                     "杯": ["会心率", "会心ダメージ"],
                     "冠": ["会心率", "会心ダメージ"]
                 },
-                "default_target_score": 180
+                "default_target_score": 200
             }
         }
     },
@@ -152,8 +155,8 @@ character_builds = {
                     "サポート重視": {
                         "攻撃%": 1.5,
                         "元素チャージ効率": 1.0,
-                        "会心率": 0.5,
-                        "会心ダメージ": 0.3
+                        "会心率": 0.3,
+                        "会心ダメージ": 0.2
                     }
                 },
                 "elixir_fixed_substats": {
@@ -163,7 +166,7 @@ character_builds = {
                     "杯": ["攻撃%", "元素チャージ効率"],
                     "冠": ["攻撃%", "元素チャージ効率"]
                 },
-                "default_target_score": 180
+                "default_target_score": 160
             }
         }
     },
@@ -187,7 +190,7 @@ character_builds = {
                         "会心率": 2.0,
                         "会心ダメージ": 1.0,
                         "攻撃%": 1.0,
-                        "元素チャージ効率": 0.0
+                        "元素チャージ効率": 0.2
                     }
                 },
                 "elixir_fixed_substats": {
@@ -197,7 +200,7 @@ character_builds = {
                     "杯": ["会心率", "会心ダメージ"],
                     "冠": ["会心率", "会心ダメージ"]
                 },
-                "default_target_score": 180
+                "default_target_score": 200
             }
         }
     },
@@ -221,7 +224,8 @@ character_builds = {
                         "会心率": 2.0,
                         "会心ダメージ": 1.0,
                         "元素熟知": 0.8,
-                        "攻撃%": 0.5
+                        "攻撃%": 0.5,
+                        "元素チャージ効率": 0.2
                     }
                 },
                 "elixir_fixed_substats": {
@@ -231,7 +235,7 @@ character_builds = {
                     "杯": ["会心率", "会心ダメージ"],
                     "冠": ["会心率", "会心ダメージ"]
                 },
-                "default_target_score": 180
+                "default_target_score": 190
             }
         }
     }
