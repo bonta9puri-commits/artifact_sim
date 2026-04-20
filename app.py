@@ -156,14 +156,43 @@ elif mode == "かんたん診断":
             step=10
         )
 
-        # 標準設定
-        reroll_times = 1
-        max_attempts = 100000
+        with st.expander("詳細設定"):
+            elixir_interval = st.number_input(
+                "エリクシル使用間隔（0で使用しない）",
+                min_value=0,
+                max_value=5000,
+                value=0,
+                step=50
+            )
+
+            reroll_interval = st.number_input(
+                "振り直し使用間隔（0で使用しない）",
+                min_value=0,
+                max_value=10000,
+                value=0,
+                step=100
+            )
+
+            reroll_times = st.number_input(
+                "振り直し1回の試行数",
+                min_value=1,
+                max_value=100,
+                value=1,
+                step=1
+            )
+
+            max_attempts = st.number_input(
+                "最大試行回数",
+                min_value=1000,
+                max_value=10000000,
+                value=100000,
+                step=1000
+            )
 
         run_light = st.button("目安を見る", use_container_width=True, type="primary")
 
         st.caption("1周あたり樹脂20で換算します。")
-        st.caption("エリクシル・振り直しは標準設定です。")
+        st.caption("詳細設定でエリクシル・振り直しを変更できます。")
         st.caption("目安：180=実用 / 200=強い / 220+=ガチ")
 
     with right_col:
@@ -185,8 +214,8 @@ elif mode == "かんたん診断":
                     score_mode=score_mode,
                     trials=trials,
                     target_score=target_score,
-                    elixir_interval=250,
-                    reroll_interval=1000,
+                    elixir_interval=elixir_interval,
+                    reroll_interval=reroll_interval,
                     reroll_times=reroll_times,
                     max_attempts=max_attempts
                 )
