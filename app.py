@@ -374,7 +374,6 @@ elif mode == "シミュ":
             info_col2.metric("ビルド", result["build_name"])
             info_col3.metric("元素", result["element"])
             info_col4.metric("武器種", result["weapon"])
-                st.markdown("---")
 
             # ===== おすすめ構成 =====
             with st.expander("おすすめ構成を見る"):
