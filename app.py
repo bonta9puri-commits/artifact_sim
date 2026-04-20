@@ -4,6 +4,8 @@ from simulator import (
     generate_artifact,
     run_multiple_simulations,
     run_character_simulation,
+    build_selected_mainstats,
+    run_custom_build_simulation,
     character_builds,
     parts
 )
@@ -78,6 +80,7 @@ if mode == "運試し":
         else:
             st.info("左で部位を選んで「1個生成」を押してください。")
 
+
 # =========================
 # かんたん診断モード
 # =========================
@@ -87,108 +90,110 @@ elif mode == "かんたん診断":
 
     left_col, right_col = st.columns([1, 1.5])
 
-with left_col:
-    st.markdown("### 設定")
+    with left_col:
+        st.markdown("### 設定")
 
-    # ===== キャラ選択 =====
-    character_name = st.selectbox(
-        "キャラを選択",
-        list(character_builds.keys())
-    )
+        # ===== キャラ選択 =====
+        character_name = st.selectbox(
+            "キャラを選択",
+            list(character_builds.keys())
+        )
 
-    # ===== ビルド選択 =====
-    build_names = list(character_builds[character_name]["builds"].keys())
-    build_name = st.selectbox(
-        "ビルドを選択",
-        build_names
-    )
+        # ===== ビルド選択 =====
+        build_names = list(character_builds[character_name]["builds"].keys())
+        build_name = st.selectbox(
+            "ビルドを選択",
+            build_names
+        )
 
-    build_data = character_builds[character_name]["builds"][build_name]
+        build_data = character_builds[character_name]["builds"][build_name]
 
-    # ===== メインステ候補 =====
-    clock_choice = st.selectbox(
-        "時計",
-        build_data["mainstat_options"]["時計"]
-    )
+        # ===== メインステ候補 =====
+        clock_choice = st.selectbox(
+            "時計",
+            build_data["mainstat_options"]["時計"]
+        )
 
-    goblet_choice = st.selectbox(
-        "杯",
-        build_data["mainstat_options"]["杯"]
-    )
+        goblet_choice = st.selectbox(
+            "杯",
+            build_data["mainstat_options"]["杯"]
+        )
 
-    circlet_choice = st.selectbox(
-        "冠",
-        build_data["mainstat_options"]["冠"]
-    )
+        circlet_choice = st.selectbox(
+            "冠",
+            build_data["mainstat_options"]["冠"]
+        )
 
-    # ===== 評価タイプ =====
-    score_mode_names = list(build_data["score_weight_options"].keys())
-    score_mode = st.selectbox(
-        "評価タイプ",
-        score_mode_names
-    )
+        # ===== 評価タイプ =====
+        score_mode_names = list(build_data["score_weight_options"].keys())
+        score_mode = st.selectbox(
+            "評価タイプ",
+            score_mode_names
+        )
 
-    # ===== 目標スコア =====
-    target_score = st.slider(
-        "目標スコア",
-        min_value=120,
-        max_value=260,
-        value=build_data["default_target_score"],
-        step=10
-    )
+        # ===== 目標スコア =====
+        target_score = st.slider(
+            "目標スコア",
+            min_value=120,
+            max_value=260,
+            value=build_data["default_target_score"],
+            step=10
+        )
 
-    resin_per_day = st.number_input(
-        "1日の樹脂消費量",
-        min_value=0,
-        max_value=300,
-        value=180,
-        step=20
-    )
+        resin_per_day = st.number_input(
+            "1日の樹脂消費量",
+            min_value=0,
+            max_value=300,
+            value=180,
+            step=20
+        )
 
-    trials = st.number_input(
-        "シミュ回数",
-        min_value=10,
-        max_value=5000,
-        value=50,
-        step=10
-    )
+        trials = st.number_input(
+            "シミュ回数",
+            min_value=10,
+            max_value=5000,
+            value=50,
+            step=10
+        )
 
-   run_light = st.button("目安を見る", use_container_width=True)
+        # 標準設定
+        reroll_times = 10
+        max_attempts = 100000
 
-   st.caption("1周あたり樹脂20で換算します。")
-   st.caption("エリクシル・振り直しは標準設定です。")
-   st.caption("目安：180=実用 / 200=強い / 220+=ガチ")
+        run_light = st.button("目安を見る", use_container_width=True, type="primary")
 
-   with right_col:
-       st.markdown("### 結果")
+        st.caption("1周あたり樹脂20で換算します。")
+        st.caption("エリクシル・振り直しは標準設定です。")
+        st.caption("目安：180=実用 / 200=強い / 220+=ガチ")
 
-   if run_light:
-       selected_mainstats = build_selected_mainstats(
-           build_data,
-           clock_choice,
-           goblet_choice,
-           circlet_choice
-    )
+    with right_col:
+        st.markdown("### 結果")
 
-        with st.spinner("計算中..."):
-            result = run_custom_build_simulation(
-                character_name=character_name,
-                build_name=build_name,
-                selected_mainstats=selected_mainstats,
-                score_mode=score_mode,
-                trials=trials,
-                target_score=target_score,
-                elixir_interval=250,
-                reroll_interval=1000,
-                reroll_times=reroll_times,
-                max_attempts=max_attempts
+        if run_light:
+            selected_mainstats = build_selected_mainstats(
+                build_data,
+                clock_choice,
+                goblet_choice,
+                circlet_choice
             )
 
-        st.write(result)  # ← とりあえずこれで確認
+            with st.spinner("計算中..."):
+                result = run_custom_build_simulation(
+                    character_name=character_name,
+                    build_name=build_name,
+                    selected_mainstats=selected_mainstats,
+                    score_mode=score_mode,
+                    trials=trials,
+                    target_score=target_score,
+                    elixir_interval=250,
+                    reroll_interval=1000,
+                    reroll_times=reroll_times,
+                    max_attempts=max_attempts
+                )
 
-from simulator import build_selected_mainstats, run_custom_build_simulation
-
-            st.markdown(f"#### {result['character']}｜{result['label']}（目標スコア {result['target_score']}）")
+            st.markdown(
+                f"#### {result['character']}｜{result['label']}（目標スコア {result['target_score']}）"
+            )
 
             st.write("**おすすめ構成**")
             st.write(result["mainstats"])
@@ -196,28 +201,31 @@ from simulator import build_selected_mainstats, run_custom_build_simulation
             if result["average"] is None:
                 st.warning("この条件では最大試行回数内に到達しませんでした。")
             else:
-                runs_per_day = resin_per_day / 20
-
-                avg_days = result["average"] / runs_per_day
-                top10_days = result["top10"] / runs_per_day
-                bottom10_days = result["bottom10"] / runs_per_day
+                runs_per_day = resin_per_day / 20 if resin_per_day > 0 else 0
 
                 metric_col1, metric_col2, metric_col3 = st.columns(3)
                 metric_col1.metric("平均", f"{result['average']} 回")
                 metric_col2.metric("上位10%", f"{result['top10']} 回")
                 metric_col3.metric("下位10%", f"{result['bottom10']} 回")
 
-                day_col1, day_col2, day_col3 = st.columns(3)
-                day_col1.metric("平均日数", f"{avg_days:.1f} 日")
-                day_col2.metric("上位10%日数", f"{top10_days:.1f} 日")
-                day_col3.metric("下位10%日数", f"{bottom10_days:.1f} 日")
+                if runs_per_day > 0:
+                    avg_days = result["average"] / runs_per_day
+                    top10_days = result["top10"] / runs_per_day
+                    bottom10_days = result["bottom10"] / runs_per_day
 
-                if avg_days <= 14:
-                    st.success("比較的現実的です")
-                elif avg_days <= 30:
-                    st.warning("少し重めです")
+                    day_col1, day_col2, day_col3 = st.columns(3)
+                    day_col1.metric("平均日数", f"{avg_days:.1f} 日")
+                    day_col2.metric("上位10%日数", f"{top10_days:.1f} 日")
+                    day_col3.metric("下位10%日数", f"{bottom10_days:.1f} 日")
+
+                    if avg_days <= 14:
+                        st.success("比較的現実的です")
+                    elif avg_days <= 30:
+                        st.warning("少し重めです")
+                    else:
+                        st.error("かなり重いです")
                 else:
-                    st.error("かなり重いです")
+                    st.info("1日の樹脂消費量が0のため、日数換算は表示できません。")
 
                 fig, ax = plt.subplots()
                 ax.hist(result["results"], bins=20)
@@ -235,6 +243,7 @@ from simulator import build_selected_mainstats, run_custom_build_simulation
 
         else:
             st.info("左でキャラを選んで診断を開始してください。")
+
 
 # =========================
 # シミュモード
@@ -357,135 +366,41 @@ elif mode == "シミュ":
 
             st.caption("※シミュ結果は簡易モデルです。実際のゲーム内体感と完全一致するものではありません。")
 
-    # -------------------------
-    # 比較シミュ
-    # -------------------------
-        elif mode == "かんたん診断":
-            st.subheader("かんたん診断")
+        # -------------------------
+        # 比較シミュ
+        # -------------------------
+        elif run_compare:
+            compare_targets = [180, 200, 240]
+            compare_results = []
 
-            st.info("キャラを選ぶだけで、標準設定での厳選の目安をざっくり確認できます。")
-
-            left_col, right_col = st.columns([1, 1.5])
-
-    # =====================
-    # 左：設定
-    # =====================
-    with left_col:
-        st.markdown("### 設定")
-
-        character_name = st.selectbox(
-            "キャラを選択",
-            list(character_builds.keys())
-        )
-
-        build_names = list(character_builds[character_name]["builds"].keys())
-
-        build_name = st.selectbox(
-            "ビルドを選択",
-            build_names
-        )
-
-        resin_per_day = st.number_input(
-            "1日の樹脂消費量",
-            min_value=0,
-            max_value=300,
-            value=180,
-            step=20
-        )
-
-        trials = st.number_input(
-            "シミュ回数",
-            min_value=10,
-            max_value=5000,
-            value=50,
-            step=10
-        )
-
-        run_light = st.button("目安を見る", use_container_width=True)
-
-        st.caption("1周あたり樹脂20で換算します。")
-        st.caption("エリクシル・振り直しは標準設定です。")
-    # =====================
-    # 右：結果
-    # =====================
-    with right_col:
-        st.markdown("### 結果")
-
-        if run_light:
             with st.spinner("計算中..."):
-                result = run_character_simulation(
-                    character_name=character_name,
-                    build_name=build_name,
-                    trials=trials,
-                    elixir_interval=250,
-                    reroll_interval=1000,
-                    reroll_times=10,
-                    max_attempts=100000
-                )
+                for score in compare_targets:
+                    result = run_multiple_simulations(
+                        trials=trials,
+                        target_score=score,
+                        elixir_interval=elixir_interval,
+                        reroll_interval=reroll_interval,
+                        reroll_times=reroll_times,
+                        max_attempts=max_attempts
+                    )
+                    compare_results.append((score, result))
 
-            build = character_builds[character_name]
+            st.markdown("#### 比較結果")
 
-            # ===== キャラ情報 =====
-            info_col1, info_col2, info_col3, info_col4 = st.columns(4)
-            info_col1.metric("キャラ", result["character"])
-            info_col2.metric("ビルド", result["build_name"])
-            info_col3.metric("元素", result["element"])
-            info_col4.metric("武器種", result["weapon"])
+            for score, result in compare_results:
+                st.markdown(f"##### 目標スコア {score}")
 
-            # ===== おすすめ構成 =====
-            with st.expander("おすすめ構成を見る"):
-                st.write(result["mainstats"])
+                success_col1, success_col2 = st.columns(2)
+                success_col1.metric("成功回数", f"{result['success_count']} / {trials}")
+                success_col2.metric("成功率", f"{result['success_rate'] * 100:.1f}%")
 
-            if result["average"] is None:
-                st.warning("この条件では最大試行回数内に到達しませんでした。")
-            else:
-                runs_per_day = resin_per_day / 20
-
-                avg_days = result["average"] / runs_per_day
-                top10_days = result["top10"] / runs_per_day
-                bottom10_days = result["bottom10"] / runs_per_day
-
-                # ===== 結論 =====
-                st.markdown("#### 結論")
-
-                day_col1, day_col2, day_col3 = st.columns(3)
-                day_col1.metric("平均日数", f"{avg_days:.1f} 日")
-                day_col2.metric("上位10%", f"{top10_days:.1f} 日")
-                day_col3.metric("下位10%", f"{bottom10_days:.1f} 日")
-
-                st.caption("樹脂20で1周換算")
-
-                # ===== 一言評価 =====
-                if avg_days <= 14:
-                    st.success("比較的現実的です")
-                elif avg_days <= 30:
-                    st.warning("少し重めです")
+                if result["average"] is None:
+                    st.warning("この条件では最大試行回数内に到達しませんでした。")
                 else:
-                    st.error("かなり重いです")
+                    metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
+                    metric_col1.metric("平均", result["average"])
+                    metric_col2.metric("中央値", result["median"])
+                    metric_col3.metric("上位10%", result["top10"])
+                    metric_col4.metric("下位10%", result["bottom10"])
 
-                # ===== 詳細 =====
-                with st.expander("詳細データを見る"):
-                    detail_col1, detail_col2, detail_col3, detail_col4 = st.columns(4)
-                    detail_col1.metric("平均回数", f"{result['average']} 回")
-                    detail_col2.metric("中央値", result["median"])
-                    detail_col3.metric("上位10%回数", result["top10"])
-                    detail_col4.metric("下位10%回数", result["bottom10"])
-
-                # ===== グラフ =====
-                st.markdown("#### 分布")
-                fig, ax = plt.subplots()
-                ax.hist(result["results"], bins=20)
-                ax.axvline(result["average"], linestyle="--", label="平均")
-                ax.axvline(result["median"], linestyle=":", label="中央値")
-                ax.set_title(f"{result['character']} の試行回数分布")
-                ax.set_xlabel("強化回数")
-                ax.set_ylabel("件数")
-                ax.legend()
-                st.pyplot(fig)
-
-                st.caption("右に長いほど、沼りやすい条件です。")
-
-            st.caption("※シミュ結果は簡易モデルです。実際のゲーム内体感と完全一致するものではありません。")
-
-        else:
-            st.info("左でキャラを選ぶと、平均日数の目安を表示します。")
+            st.caption("※比較シミュではグラフは省略しています。必要なら追加できます。")
