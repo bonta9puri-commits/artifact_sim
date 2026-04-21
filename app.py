@@ -245,8 +245,6 @@ elif mode == "かんたん診断":
             st.write(result["mainstats"])
 
             with st.expander("使用条件とスコア式を見る"):
-                st.write("**メインステ構成**")
-                st.write(result["mainstats"])
 
                 st.write(f"**評価タイプ**: {score_mode}")
                 st.write(f"**目標スコア**: {target_score}")
@@ -268,29 +266,27 @@ elif mode == "かんたん診断":
             success_col1.metric("成功回数", f"{len(result['results'])} / {trials}")
             success_col2.metric("成功率", f"{result['success_rate'] * 100:.1f}%")
 
-            success_col1, success_col2 = st.columns(2)
-            success_col1.metric("成功回数", f"{len(result['results'])} / {trials}")
-            success_col2.metric("成功率", f"{result['success_rate'] * 100:.1f}%")
-
             if result["average"] is None:
                 st.warning("この条件では最大試行回数内に到達しませんでした。")
             else:
                 runs_per_day = resin_per_day / 20 if resin_per_day > 0 else 0
 
-                metric_col1, metric_col2, metric_col3 = st.columns(3)
+                metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
                 metric_col1.metric("平均", f"{result['average']} 回")
-                metric_col2.metric("良い側10%", f"{result['best10']} 回")
-                metric_col3.metric("沼側10%", f"{result['worst10']} 回")
+                metric_col2.metric("中央値", f"{result['median']} 回")
+                metric_col3.metric("良い側10%", f"{result['best10']} 回")
+                metric_col4.metric("沼側10%", f"{result['worst10']} 回")
 
                 if runs_per_day > 0:
                     avg_days = result["average"] / runs_per_day
                     best10_days = result["best10"] / runs_per_day
                     worst10_days = result["worst10"] / runs_per_day
 
-                    day_col1, day_col2, day_col3 = st.columns(3)
-                    day_col1.metric("平均日数", f"{avg_days:.1f} 日")
-                    day_col2.metric("良い側10%日数", f"{best10_days:.1f} 日")
-                    day_col3.metric("沼側10%日数", f"{worst10_days:.1f} 日")
+                    with st.expander("日数換算を見る"):
+                        day_col1, day_col2, day_col3 = st.columns(3)
+                        day_col1.metric("平均日数", f"{avg_days:.1f} 日")
+                        day_col2.metric("良い側10%日数", f"{best10_days:.1f} 日")
+                        day_col3.metric("沼側10%日数", f"{worst10_days:.1f} 日")
 
                     if avg_days <= 14:
                         st.success("比較的現実的です")
