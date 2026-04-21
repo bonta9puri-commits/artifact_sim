@@ -244,6 +244,10 @@ elif mode == "かんたん診断":
             st.write("**おすすめ構成**")
             st.write(result["mainstats"])
 
+            success_col1, success_col2 = st.columns(2)
+            success_col1.metric("成功回数", f"{len(result['results'])} / {trials}")
+            success_col2.metric("成功率", f"{result['success_rate'] * 100:.1f}%")
+
             if result["average"] is None:
                 st.warning("この条件では最大試行回数内に到達しませんでした。")
             else:

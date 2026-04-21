@@ -173,6 +173,34 @@ def calc_weighted_score(substats, weights):
     return score
 
 # =========================
+# 統計まとめ
+# =========================
+def summarize_results(results):
+    if not results:
+        return {
+            "average": None,
+            "median": None,
+            "best10": None,
+            "worst10": None,
+            "results": []
+        }
+
+    results = sorted(results)
+    n = len(results)
+
+    avg = sum(results) / n
+    median = results[n // 2] if n % 2 else (results[n // 2 - 1] + results[n // 2]) / 2
+    best10 = results[int(n * 0.1)]
+    worst10 = results[int(n * 0.9)]
+
+    return {
+        "average": round(avg, 1),
+        "median": median,
+        "best10": best10,
+        "worst10": worst10,
+        "results": results
+    }
+# =========================
 # エリクシル生成（固定サブステ付き）
 # =========================
 def generate_elixir_artifact(part, mainstat, fixed_substats):
@@ -441,33 +469,16 @@ def run_multiple_simulations(
             results.append(count)
             success_count += 1
 
-    if not results:
-        return {
-            "success_count": 0,
-            "success_rate": 0,
-            "average": None,
-            "median": None,
-            "best10": None,
-            "worst10": None,
-            "results": []
-        }
-
-    results.sort()
-    n = len(results)
-
-    avg = sum(results) / n
-    median = results[n // 2] if n % 2 else (results[n // 2 - 1] + results[n // 2]) / 2
-    best10 = results[int(n * 0.1)]
-    worst10 = results[int(n * 0.9)]
+    summary = summarize_results(results)
 
     return {
         "success_count": success_count,
-        "success_rate": success_count / trials,
-        "average": round(avg, 1),
-        "median": median,
-        "best10": best10,
-        "worst10": worst10,
-        "results": results
+        "success_rate": success_count / trials if trials > 0 else 0,
+        "average": summary["average"],
+        "median": summary["median"],
+        "best10": summary["best10"],
+        "worst10": summary["worst10"],
+        "results": summary["results"]
     }
 
 # =========================
@@ -511,39 +522,19 @@ def run_custom_build_simulation(
             results.append(count)
             success_count += 1
 
-    if not results:
-        return {
-            "character": character_name,
-            "label": build_name,
-            "target_score": target_score,
-            "mainstats": selected_mainstats,
-            "average": None,
-            "median": None,
-            "best10": None,
-            "worst10": None,
-            "results": [],
-            "success_rate": 0
-        }
-
-    results.sort()
-    n = len(results)
-
-    avg = sum(results) / n
-    median = results[n // 2] if n % 2 else (results[n // 2 - 1] + results[n // 2]) / 2
-    best10 = results[int(n * 0.1)]
-    worst10 = results[int(n * 0.9)]
+    summary = summarize_results(results)
 
     return {
         "character": character_name,
         "label": build_name,
         "target_score": target_score,
         "mainstats": selected_mainstats,
-        "average": round(avg, 1),
-        "median": median,
-        "best10": best10,
-        "worst10": worst10,
-        "results": results,
-        "success_rate": success_count / trials
+        "average": summary["average"],
+        "median": summary["median"],
+        "best10": summary["best10"],
+        "worst10": summary["worst10"],
+        "results": summary["results"],
+        "success_rate": success_count / trials if trials > 0 else 0
     }
 
 # =========================
