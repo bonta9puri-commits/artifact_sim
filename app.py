@@ -251,8 +251,8 @@ elif mode == "かんたん診断":
 
                 metric_col1, metric_col2, metric_col3 = st.columns(3)
                 metric_col1.metric("平均", f"{result['average']} 回")
-                metric_col2.metric("良い方10%", f"{result['best10']} 回")
-                metric_col3.metric("沼な10%", f"{result['worst10']} 回")
+                metric_col2.metric("良い側10%", f"{result['best10']} 回")
+                metric_col3.metric("沼側10%", f"{result['worst10']} 回")
 
                 if runs_per_day > 0:
                     avg_days = result["average"] / runs_per_day
@@ -261,8 +261,8 @@ elif mode == "かんたん診断":
 
                     day_col1, day_col2, day_col3 = st.columns(3)
                     day_col1.metric("平均日数", f"{avg_days:.1f} 日")
-                    day_col2.metric("良い方10%日数", f"{best10_days:.1f} 日")
-                    day_col3.metric("沼な10%日数", f"{worst10_days:.1f} 日")
+                    day_col2.metric("良い側10%日数", f"{best10_days:.1f} 日")
+                    day_col3.metric("沼側10%日数", f"{worst10_days:.1f} 日")
 
                     if avg_days <= 14:
                         st.success("比較的現実的です")
