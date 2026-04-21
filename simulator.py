@@ -152,6 +152,7 @@ def generate_artifact(part, score_weights=None):
         "サブ": substats,
         "スコア": score
     }
+st.caption("簡易スコア: 会心率×2 + 会心ダメージ×1 + 攻撃%×1")
 # =========================
 # メインステ構築（UI選択用）
 # =========================
