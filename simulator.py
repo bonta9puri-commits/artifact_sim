@@ -109,7 +109,7 @@ def get_forbidden_substat(mainstat):
     else:
         return None
 
-def generate_artifact(part):
+def generate_artifact(part, score_weights=None):
     candidates = list(mainstat_weights[part].keys())
     weights = list(mainstat_weights[part].values())
     main = random.choices(candidates, weights=weights, k=1)[0]
@@ -135,13 +135,22 @@ def generate_artifact(part):
         s = random.choice(list(substats.keys()))
         substats[s] += random.choice(substat_values[s])
 
+    if score_weights is None:
+        score_weights = {
+            "会心率": 2.0,
+            "会心ダメージ": 1.0,
+            "攻撃%": 1.0
+        }
+
+    score = round(calc_weighted_score(substats, score_weights), 1)
+
     return {
         "部位": part,
         "セット": artifact_set,
         "メイン": main,
         "初期サブ": initial_substats,
         "サブ": substats,
-        "スコア": 0
+        "スコア": score
     }
 # =========================
 # メインステ構築（UI選択用）
