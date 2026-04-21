@@ -244,13 +244,6 @@ elif mode == "かんたん診断":
             st.write("**おすすめ構成**")
             st.write(result["mainstats"])
 
-                        st.markdown(
-                f"#### {result['character']}｜{result['label']}（目標スコア {result['target_score']}）"
-            )
-
-            st.write("**おすすめ構成**")
-            st.write(result["mainstats"])
-
             with st.expander("使用条件とスコア式を見る"):
                 st.write("**メインステ構成**")
                 st.write(result["mainstats"])
