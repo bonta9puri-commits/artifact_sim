@@ -1,5 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
+from preset_utils import upsert_preset, get_preset, list_presets
 from simulator import (
     generate_artifact,
     run_multiple_simulations,
@@ -27,6 +28,41 @@ mode = st.radio(
     horizontal=True
 )
 
+
+def build_light_preset_data():
+    return {
+        "element_filter": st.session_state.get("preset_element_filter", "すべて"),
+        "character_name": st.session_state.get("preset_character_name", ""),
+        "build_name": st.session_state.get("preset_build_name", ""),
+        "clock_choice": st.session_state.get("preset_clock_choice", ""),
+        "goblet_choice": st.session_state.get("preset_goblet_choice", ""),
+        "circlet_choice": st.session_state.get("preset_circlet_choice", ""),
+        "score_mode": st.session_state.get("preset_score_mode", ""),
+        "target_score": st.session_state.get("preset_target_score", 180),
+        "resin_per_day": st.session_state.get("preset_resin_per_day", 180),
+        "trials": st.session_state.get("preset_trials", 50),
+        "elixir_interval": st.session_state.get("preset_elixir_interval", 0),
+        "reroll_interval": st.session_state.get("preset_reroll_interval", 0),
+        "reroll_times": st.session_state.get("preset_reroll_times", 1),
+        "max_attempts": st.session_state.get("preset_max_attempts", 100000)
+    }
+
+
+def apply_light_preset_data(data):
+    st.session_state["preset_element_filter"] = data.get("element_filter", "すべて")
+    st.session_state["preset_character_name"] = data.get("character_name", "")
+    st.session_state["preset_build_name"] = data.get("build_name", "")
+    st.session_state["preset_clock_choice"] = data.get("clock_choice", "")
+    st.session_state["preset_goblet_choice"] = data.get("goblet_choice", "")
+    st.session_state["preset_circlet_choice"] = data.get("circlet_choice", "")
+    st.session_state["preset_score_mode"] = data.get("score_mode", "")
+    st.session_state["preset_target_score"] = data.get("target_score", 180)
+    st.session_state["preset_resin_per_day"] = data.get("resin_per_day", 180)
+    st.session_state["preset_trials"] = data.get("trials", 50)
+    st.session_state["preset_elixir_interval"] = data.get("elixir_interval", 0)
+    st.session_state["preset_reroll_interval"] = data.get("reroll_interval", 0)
+    st.session_state["preset_reroll_times"] = data.get("reroll_times", 1)
+    st.session_state["preset_max_attempts"] = data.get("max_attempts", 100000)
 # =========================
 # 運試しモード
 # =========================
@@ -100,7 +136,8 @@ elif mode == "かんたん診断":
 
         element_filter = st.selectbox(
             "元素で絞り込み",
-            ["すべて", "炎", "水", "雷", "氷", "風", "岩", "草"]
+            ["すべて", "炎", "水", "雷", "氷", "風", "岩", "草"],
+            key="preset_element_filter"
         )
 
         if element_filter == "すべて":
@@ -117,13 +154,14 @@ elif mode == "かんたん診断":
 
         character_name = st.selectbox(
             "キャラを選択",
-            filtered_character_names
+            filtered_character_names,
+            key="preset_character_name"
         )
 
-        build_names = list(character_builds[character_name]["builds"].keys())
         build_name = st.selectbox(
             "ビルドを選択",
-            build_names
+            build_names,
+            key="preset_build_name"
         )
 
         build_data = character_builds[character_name]["builds"][build_name]
@@ -143,10 +181,10 @@ elif mode == "かんたん診断":
             build_data["mainstat_options"]["冠"]
         )
 
-        score_mode_names = list(build_data["score_weight_options"].keys())
         score_mode = st.selectbox(
             "評価タイプ",
-            score_mode_names
+            score_mode_names,
+            key="preset_score_mode"
         )
 
         target_score = st.slider(
@@ -154,7 +192,8 @@ elif mode == "かんたん診断":
             min_value=120,
             max_value=260,
             value=build_data["default_target_score"],
-            step=10
+            step=10,
+            key="preset_target_score"
         )
 
         resin_per_day = st.number_input(
@@ -162,7 +201,8 @@ elif mode == "かんたん診断":
             min_value=0,
             max_value=300,
             value=180,
-            step=20
+            step=20,
+            key="preset_resin_per_day"
         )
 
         trials = st.number_input(
@@ -170,16 +210,17 @@ elif mode == "かんたん診断":
             min_value=10,
             max_value=5000,
             value=50,
-            step=10
+            step=10,
+            key="preset_trials"
         )
 
-        with st.expander("詳細設定"):
             elixir_interval = st.number_input(
                 "エリクシル使用間隔（0で使用しない）",
                 min_value=0,
                 max_value=5000,
                 value=0,
-                step=50
+                step=50,
+                key="preset_elixir_interval"
             )
 
             reroll_interval = st.number_input(
@@ -187,7 +228,8 @@ elif mode == "かんたん診断":
                 min_value=0,
                 max_value=10000,
                 value=0,
-                step=100
+                step=100,
+                key="preset_reroll_interval"
             )
 
             reroll_times = st.number_input(
@@ -195,7 +237,8 @@ elif mode == "かんたん診断":
                 min_value=1,
                 max_value=100,
                 value=1,
-                step=1
+                step=1,
+                key="preset_reroll_times"
             )
 
             max_attempts = st.number_input(
@@ -203,10 +246,60 @@ elif mode == "かんたん診断":
                 min_value=1000,
                 max_value=10000000,
                 value=100000,
-                step=1000
+                step=1000,
+                key="preset_max_attempts"
             )
 
         run_light = st.button("目安を見る", use_container_width=True, type="primary")
+
+        st.markdown("### プリセット")
+
+        light_presets = list_presets(mode="かんたん診断")
+        light_preset_names = [""] + list(light_presets.keys())
+
+        preset_name_input = st.text_input(
+            "保存するプリセット名",
+            key="light_preset_name_input"
+        )
+
+        preset_note_input = st.text_input(
+            "メモ（任意）",
+            key="light_preset_note_input"
+        )
+
+        selected_preset_name = st.selectbox(
+            "保存済みプリセット",
+            light_preset_names,
+            key="selected_light_preset_name"
+        )
+
+        preset_save_col, preset_load_col = st.columns(2)
+
+        with preset_save_col:
+            if st.button("条件を保存", use_container_width=True):
+                preset_name = preset_name_input.strip()
+                if preset_name:
+                    upsert_preset(
+                        name=preset_name,
+                        mode="かんたん診断",
+                        data=build_light_preset_data(),
+                        note=preset_note_input.strip()
+                    )
+                    st.success(f"プリセット「{preset_name}」を保存しました")
+                else:
+                    st.warning("プリセット名を入力してください")
+
+        with preset_load_col:
+            if st.button("読み込む", use_container_width=True):
+                if selected_preset_name:
+                    preset = get_preset(selected_preset_name)
+                    if preset and preset.get("mode") == "かんたん診断":
+                        apply_light_preset_data(preset.get("data", {}))
+                        st.rerun()
+                    else:
+                        st.warning("読み込めるプリセットが見つかりませんでした")
+                else:
+                    st.warning("読み込むプリセットを選んでください")
 
         st.caption("1周あたり樹脂20で換算します。")
         st.caption("詳細設定でエリクシル・振り直しを変更できます。")
