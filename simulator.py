@@ -150,6 +150,7 @@ def generate_artifact(part, score_weights=None):
         "メイン": main,
         "初期サブ": initial_substats,
         "サブ": substats,
+        "初期OP数": num_substats,
         "スコア": score
     }
 
@@ -232,6 +233,7 @@ def generate_elixir_artifact(part, mainstat, fixed_substats):
         "メイン": mainstat,
         "初期サブ": initial_substats,
         "サブ": substats,
+        "初期OP数": 4,
         "スコア": 0
     }
 # =========================
@@ -274,16 +276,18 @@ def reroll_upgrade_only(artifact, reroll_times=10, score_weights=None):
         "メイン": artifact["メイン"],
         "初期サブ": dict(artifact.get("初期サブ", artifact["サブ"])),
         "サブ": dict(artifact["サブ"]),
+        "初期OP数": artifact.get("初期OP数", len(artifact.get("初期サブ", artifact["サブ"]))),
         "スコア": artifact.get("スコア", 0)
     }
 
     base_sub = dict(artifact.get("初期サブ", artifact["サブ"]))
+    initial_op_count = artifact.get("初期OP数", len(base_sub))
+    reroll_upgrades = 4 if initial_op_count == 3 else 5
 
     for _ in range(reroll_times):
         new_sub = dict(base_sub)
 
-        # 3OP/4OPを厳密に持っていないので簡易的に5回振り直し
-        for _ in range(5):
+        for _ in range(reroll_upgrades):
             s = random.choice(list(new_sub.keys()))
             new_sub[s] += random.choice(substat_values[s])
 
@@ -297,6 +301,7 @@ def reroll_upgrade_only(artifact, reroll_times=10, score_weights=None):
             "メイン": artifact["メイン"],
             "初期サブ": dict(base_sub),
             "サブ": new_sub,
+            "初期OP数": initial_op_count,
             "スコア": candidate_score
         }
 
@@ -304,7 +309,6 @@ def reroll_upgrade_only(artifact, reroll_times=10, score_weights=None):
             best = candidate
 
     return best
-
 # =========================
 # カスタムビルド用シミュ
 # =========================
