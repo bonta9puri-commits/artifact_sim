@@ -27,6 +27,47 @@ mode = st.radio(
     horizontal=True
 )
 
+def build_light_query_params():
+    data = build_light_preset_data()
+    return {
+        "mode": "かんたん診断",
+        "element_filter": data["element_filter"],
+        "character_name": data["character_name"],
+        "build_name": data["build_name"],
+        "clock_choice": data["clock_choice"],
+        "goblet_choice": data["goblet_choice"],
+        "circlet_choice": data["circlet_choice"],
+        "score_mode": data["score_mode"],
+        "target_score": str(data["target_score"]),
+        "resin_per_day": str(data["resin_per_day"]),
+        "trials": str(data["trials"]),
+        "elixir_interval": str(data["elixir_interval"]),
+        "reroll_interval": str(data["reroll_interval"]),
+        "reroll_times": str(data["reroll_times"]),
+        "max_attempts": str(data["max_attempts"]),
+    }
+
+
+def apply_light_query_params():
+    params = st.query_params
+
+    if params.get("mode") != "かんたん診断":
+        return
+
+    st.session_state["preset_element_filter"] = params.get("element_filter", "すべて")
+    st.session_state["preset_character_name"] = params.get("character_name", "")
+    st.session_state["preset_build_name"] = params.get("build_name", "")
+    st.session_state["preset_clock_choice"] = params.get("clock_choice", "")
+    st.session_state["preset_goblet_choice"] = params.get("goblet_choice", "")
+    st.session_state["preset_circlet_choice"] = params.get("circlet_choice", "")
+    st.session_state["preset_score_mode"] = params.get("score_mode", "")
+    st.session_state["preset_target_score"] = int(params.get("target_score", 180))
+    st.session_state["preset_resin_per_day"] = int(params.get("resin_per_day", 180))
+    st.session_state["preset_trials"] = int(params.get("trials", 50))
+    st.session_state["preset_elixir_interval"] = int(params.get("elixir_interval", 0))
+    st.session_state["preset_reroll_interval"] = int(params.get("reroll_interval", 0))
+    st.session_state["preset_reroll_times"] = int(params.get("reroll_times", 1))
+    st.session_state["preset_max_attempts"] = int(params.get("max_attempts", 100000))
 
 def build_light_preset_data():
     return {
@@ -62,6 +103,11 @@ def apply_light_preset_data(data):
     st.session_state["preset_reroll_interval"] = data.get("reroll_interval", 0)
     st.session_state["preset_reroll_times"] = data.get("reroll_times", 1)
     st.session_state["preset_max_attempts"] = data.get("max_attempts", 100000)
+
+
+if "query_applied" not in st.session_state:
+    apply_light_query_params()
+    st.session_state["query_applied"] = True
 
 # =========================
 # 運試しモード
@@ -258,6 +304,12 @@ elif mode == "かんたん診断":
 
        
         run_light = st.button("目安を見る", use_container_width=True, type="primary")
+
+        if st.button("共有URLを更新", use_container_width=True):
+            st.query_params.clear()
+            st.query_params.update(build_light_query_params())
+            st.success("URLを更新しました。今のURLをそのまま共有できます。")
+
         st.caption("1周あたり樹脂20で換算します。")
         st.caption("詳細設定でエリクシル・振り直しを変更できます。")
         st.caption("目安：180=実用 / 200=強い / 220+=ガチ")
@@ -293,7 +345,7 @@ elif mode == "かんたん診断":
 
             st.write("**おすすめ構成**")
             st.write(result["mainstats"])
-
+            st.info("「共有URLを更新」を押すと、現在の条件をURLに反映できます。ブックマークや共有に使えます。")
             with st.expander("使用条件とスコア式を見る"):
 
                 st.write(f"**評価タイプ**: {score_mode}")
