@@ -158,6 +158,7 @@ elif mode == "かんたん診断":
             key="preset_character_name"
         )
 
+        build_names = list(character_builds[character_name]["builds"].keys())
         build_name = st.selectbox(
             "ビルドを選択",
             build_names,
@@ -168,19 +169,23 @@ elif mode == "かんたん診断":
 
         clock_choice = st.selectbox(
             "時計",
-            build_data["mainstat_options"]["時計"]
+            build_data["mainstat_options"]["時計"],
+            key="preset_clock_choice"
         )
 
         goblet_choice = st.selectbox(
             "杯",
-            build_data["mainstat_options"]["杯"]
+            build_data["mainstat_options"]["杯"],
+            key="preset_goblet_choice"
         )
 
         circlet_choice = st.selectbox(
             "冠",
-            build_data["mainstat_options"]["冠"]
+            build_data["mainstat_options"]["冠"],
+            key="preset_circlet_choice"
         )
 
+        score_mode_names = list(build_data["score_weight_options"].keys())
         score_mode = st.selectbox(
             "評価タイプ",
             score_mode_names,
@@ -214,6 +219,7 @@ elif mode == "かんたん診断":
             key="preset_trials"
         )
 
+        with st.expander("詳細設定"):
             elixir_interval = st.number_input(
                 "エリクシル使用間隔（0で使用しない）",
                 min_value=0,
@@ -250,8 +256,56 @@ elif mode == "かんたん診断":
                 key="preset_max_attempts"
             )
 
-        run_light = st.button("目安を見る", use_container_width=True, type="primary")
+        st.markdown("### プリセット")
 
+        light_presets = list_presets(mode="かんたん診断")
+        light_preset_names = [""] + list(light_presets.keys())
+
+        preset_name_input = st.text_input(
+            "保存するプリセット名",
+            key="light_preset_name_input"
+        )
+
+        preset_note_input = st.text_input(
+            "メモ（任意）",
+            key="light_preset_note_input"
+        )
+
+        selected_preset_name = st.selectbox(
+            "保存済みプリセット",
+            light_preset_names,
+            key="selected_light_preset_name"
+        )
+
+        preset_save_col, preset_load_col = st.columns(2)
+
+        with preset_save_col:
+            if st.button("条件を保存", use_container_width=True):
+                preset_name = preset_name_input.strip()
+                if preset_name:
+                    upsert_preset(
+                        name=preset_name,
+                        mode="かんたん診断",
+                        data=build_light_preset_data(),
+                        note=preset_note_input.strip()
+                    )
+                    st.success(f"プリセット「{preset_name}」を保存しました")
+                else:
+                    st.warning("プリセット名を入力してください")
+
+        with preset_load_col:
+            if st.button("読み込む", use_container_width=True):
+                if selected_preset_name:
+                    preset = get_preset(selected_preset_name)
+                    if preset and preset.get("mode") == "かんたん診断":
+                        apply_light_preset_data(preset.get("data", {}))
+                        st.rerun()
+                    else:
+                        st.warning("読み込めるプリセットが見つかりませんでした")
+                else:
+                    st.warning("読み込むプリセットを選んでください")
+
+        run_light = st.button("目安を見る", use_container_width=True, type="primary")
         st.markdown("### プリセット")
 
         light_presets = list_presets(mode="かんたん診断")
