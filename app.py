@@ -28,6 +28,9 @@ mode = st.radio(
     horizontal=True
 )
 
+if "pending_light_preset_data" in st.session_state:
+    pending_data = st.session_state.pop("pending_light_preset_data")
+    apply_light_preset_data(pending_data)
 
 def build_light_preset_data():
     return {
@@ -298,7 +301,7 @@ elif mode == "かんたん診断":
                 if selected_preset_name:
                     preset = get_preset(selected_preset_name)
                     if preset and preset.get("mode") == "かんたん診断":
-                        apply_light_preset_data(preset.get("data", {}))
+                        st.session_state["pending_light_preset_data"] = preset.get("data", {})
                         st.rerun()
                     else:
                         st.warning("読み込めるプリセットが見つかりませんでした")
