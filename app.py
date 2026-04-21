@@ -28,9 +28,6 @@ mode = st.radio(
     horizontal=True
 )
 
-if "pending_light_preset_data" in st.session_state:
-    pending_data = st.session_state.pop("pending_light_preset_data")
-    apply_light_preset_data(pending_data)
 
 def build_light_preset_data():
     return {
@@ -66,6 +63,11 @@ def apply_light_preset_data(data):
     st.session_state["preset_reroll_interval"] = data.get("reroll_interval", 0)
     st.session_state["preset_reroll_times"] = data.get("reroll_times", 1)
     st.session_state["preset_max_attempts"] = data.get("max_attempts", 100000)
+
+if "pending_light_preset_data" in st.session_state:
+    pending_data = st.session_state.pop("pending_light_preset_data")
+    apply_light_preset_data(pending_data)
+
 # =========================
 # 運試しモード
 # =========================
