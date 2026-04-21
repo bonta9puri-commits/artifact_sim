@@ -152,7 +152,7 @@ def generate_artifact(part, score_weights=None):
         "サブ": substats,
         "スコア": score
     }
-st.caption("簡易スコア: 会心率×2 + 会心ダメージ×1 + 攻撃%×1")
+
 # =========================
 # メインステ構築（UI選択用）
 # =========================
@@ -447,8 +447,8 @@ def run_multiple_simulations(
             "success_rate": 0,
             "average": None,
             "median": None,
-            "top10": None,
-            "bottom10": None,
+            "best10": None,
+            "worst10": None,
             "results": []
         }
 
@@ -457,16 +457,16 @@ def run_multiple_simulations(
 
     avg = sum(results) / n
     median = results[n // 2] if n % 2 else (results[n // 2 - 1] + results[n // 2]) / 2
-    top10 = results[int(n * 0.1)]
-    bottom10 = results[int(n * 0.9)]
+    best10 = results[int(n * 0.1)]
+    worst10 = results[int(n * 0.9)]
 
     return {
         "success_count": success_count,
         "success_rate": success_count / trials,
         "average": round(avg, 1),
         "median": median,
-        "top10": top10,
-        "bottom10": bottom10,
+        "best10": best10,
+        "worst10": worst10,
         "results": results
     }
 
@@ -519,8 +519,8 @@ def run_custom_build_simulation(
             "mainstats": selected_mainstats,
             "average": None,
             "median": None,
-            "top10": None,
-            "bottom10": None,
+            "best10": None,
+            "worst10": None,
             "results": [],
             "success_rate": 0
         }
@@ -530,8 +530,8 @@ def run_custom_build_simulation(
 
     avg = sum(results) / n
     median = results[n // 2] if n % 2 else (results[n // 2 - 1] + results[n // 2]) / 2
-    top10 = results[int(n * 0.1)]
-    bottom10 = results[int(n * 0.9)]
+    best10 = results[int(n * 0.1)]
+    worst10 = results[int(n * 0.9)]
 
     return {
         "character": character_name,
@@ -540,8 +540,8 @@ def run_custom_build_simulation(
         "mainstats": selected_mainstats,
         "average": round(avg, 1),
         "median": median,
-        "top10": top10,
-        "bottom10": bottom10,
+        "best10": best10,
+        "worst10": worst10,
         "results": results,
         "success_rate": success_count / trials
     }

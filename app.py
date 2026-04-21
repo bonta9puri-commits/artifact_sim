@@ -252,18 +252,18 @@ elif mode == "かんたん診断":
 
                 metric_col1, metric_col2, metric_col3 = st.columns(3)
                 metric_col1.metric("平均", f"{result['average']} 回")
-                metric_col2.metric("上位10%", f"{result['top10']} 回")
-                metric_col3.metric("下位10%", f"{result['bottom10']} 回")
+                metric_col2.metric("良い方10%", f"{result['best10']} 回")
+                metric_col3.metric("沼な10%", f"{result['worst10']} 回")
 
                 if runs_per_day > 0:
                     avg_days = result["average"] / runs_per_day
-                    top10_days = result["top10"] / runs_per_day
-                    bottom10_days = result["bottom10"] / runs_per_day
+                    best10_days = result["best10"] / runs_per_day
+                    worst10_days = result["worst10"] / runs_per_day
 
                     day_col1, day_col2, day_col3 = st.columns(3)
                     day_col1.metric("平均日数", f"{avg_days:.1f} 日")
-                    day_col2.metric("上位10%日数", f"{top10_days:.1f} 日")
-                    day_col3.metric("下位10%日数", f"{bottom10_days:.1f} 日")
+                    day_col2.metric("良い方10%日数", f"{best10_days:.1f} 日")
+                    day_col3.metric("沼な10%日数", f"{worst10_days:.1f} 日")
 
                     if avg_days <= 14:
                         st.success("比較的現実的です")
@@ -390,8 +390,8 @@ elif mode == "シミュ":
                 metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
                 metric_col1.metric("平均", result["average"])
                 metric_col2.metric("中央値", result["median"])
-                metric_col3.metric("上位10%", result["top10"])
-                metric_col4.metric("下位10%", result["bottom10"])
+                metric_col3.metric("良い方10%", result["best10"])
+                metric_col4.metric("沼な10%", result["worst10"])
 
                 fig, ax = plt.subplots()
                 ax.hist(result["results"], bins=20)
@@ -441,7 +441,7 @@ elif mode == "シミュ":
                     metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
                     metric_col1.metric("平均", result["average"])
                     metric_col2.metric("中央値", result["median"])
-                    metric_col3.metric("上位10%", result["top10"])
-                    metric_col4.metric("下位10%", result["bottom10"])
+                    metric_col3.metric("良い方10%", result["best10"])
+                    metric_col4.metric("沼な10%", result["worst10"])
 
             st.caption("※比較シミュではグラフは省略しています。必要なら追加できます。")
