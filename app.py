@@ -244,6 +244,37 @@ elif mode == "かんたん診断":
             st.write("**おすすめ構成**")
             st.write(result["mainstats"])
 
+                        st.markdown(
+                f"#### {result['character']}｜{result['label']}（目標スコア {result['target_score']}）"
+            )
+
+            st.write("**おすすめ構成**")
+            st.write(result["mainstats"])
+
+            with st.expander("使用条件とスコア式を見る"):
+                st.write("**メインステ構成**")
+                st.write(result["mainstats"])
+
+                st.write(f"**評価タイプ**: {score_mode}")
+                st.write(f"**目標スコア**: {target_score}")
+                st.write(f"**1日の樹脂消費量**: {resin_per_day}")
+                st.write(f"**シミュ回数**: {trials}")
+                st.write(f"**エリクシル使用間隔**: {elixir_interval}")
+                st.write(f"**振り直し使用間隔**: {reroll_interval}")
+                st.write(f"**振り直し1回の試行数**: {reroll_times}")
+                st.write(f"**最大試行回数**: {max_attempts}")
+
+                weights = build_data["score_weight_options"][score_mode]
+                score_text = " + ".join(
+                    f"{stat}×{weight}" for stat, weight in weights.items() if weight != 0
+                )
+                st.write("**スコア式**")
+                st.caption(score_text)
+
+            success_col1, success_col2 = st.columns(2)
+            success_col1.metric("成功回数", f"{len(result['results'])} / {trials}")
+            success_col2.metric("成功率", f"{result['success_rate'] * 100:.1f}%")
+
             success_col1, success_col2 = st.columns(2)
             success_col1.metric("成功回数", f"{len(result['results'])} / {trials}")
             success_col2.metric("成功率", f"{result['success_rate'] * 100:.1f}%")
