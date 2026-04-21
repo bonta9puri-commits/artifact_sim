@@ -360,7 +360,8 @@ elif mode == "かんたん診断":
                 else:
                     st.warning("削除するプリセットを選んでください")
 
-        run_light = st.button("目安を見る", use_container_width=True, type="primary")        st.caption("1周あたり樹脂20で換算します。")
+        run_light = st.button("目安を見る", use_container_width=True, type="primary")
+        st.caption("1周あたり樹脂20で換算します。")
         st.caption("詳細設定でエリクシル・振り直しを変更できます。")
         st.caption("目安：180=実用 / 200=強い / 220+=ガチ")
 
