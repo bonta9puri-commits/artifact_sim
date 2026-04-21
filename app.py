@@ -306,54 +306,6 @@ elif mode == "かんたん診断":
                     st.warning("読み込むプリセットを選んでください")
 
         run_light = st.button("目安を見る", use_container_width=True, type="primary")
-        st.markdown("### プリセット")
-
-        light_presets = list_presets(mode="かんたん診断")
-        light_preset_names = [""] + list(light_presets.keys())
-
-        preset_name_input = st.text_input(
-            "保存するプリセット名",
-            key="light_preset_name_input"
-        )
-
-        preset_note_input = st.text_input(
-            "メモ（任意）",
-            key="light_preset_note_input"
-        )
-
-        selected_preset_name = st.selectbox(
-            "保存済みプリセット",
-            light_preset_names,
-            key="selected_light_preset_name"
-        )
-
-        preset_save_col, preset_load_col = st.columns(2)
-
-        with preset_save_col:
-            if st.button("条件を保存", use_container_width=True):
-                preset_name = preset_name_input.strip()
-                if preset_name:
-                    upsert_preset(
-                        name=preset_name,
-                        mode="かんたん診断",
-                        data=build_light_preset_data(),
-                        note=preset_note_input.strip()
-                    )
-                    st.success(f"プリセット「{preset_name}」を保存しました")
-                else:
-                    st.warning("プリセット名を入力してください")
-
-        with preset_load_col:
-            if st.button("読み込む", use_container_width=True):
-                if selected_preset_name:
-                    preset = get_preset(selected_preset_name)
-                    if preset and preset.get("mode") == "かんたん診断":
-                        apply_light_preset_data(preset.get("data", {}))
-                        st.rerun()
-                    else:
-                        st.warning("読み込めるプリセットが見つかりませんでした")
-                else:
-                    st.warning("読み込むプリセットを選んでください")
 
         st.caption("1周あたり樹脂20で換算します。")
         st.caption("詳細設定でエリクシル・振り直しを変更できます。")
