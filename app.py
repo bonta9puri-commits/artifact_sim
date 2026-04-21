@@ -1,7 +1,5 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-import json
-from streamlit_local_storage import LocalStorage
 from simulator import (
     generate_artifact,
     run_multiple_simulations,
@@ -64,49 +62,6 @@ def apply_light_preset_data(data):
     st.session_state["preset_reroll_interval"] = data.get("reroll_interval", 0)
     st.session_state["preset_reroll_times"] = data.get("reroll_times", 1)
     st.session_state["preset_max_attempts"] = data.get("max_attempts", 100000)
-
-localS = LocalStorage()
-
-LIGHT_PRESET_STORAGE_KEY = "artifact_sim_light_presets_v1"
-
-
-def load_light_browser_presets():
-    raw = localS.getItem(
-        LIGHT_PRESET_STORAGE_KEY,
-        key="ls_get_light_presets"
-    )
-
-    if not raw:
-        return {}
-
-    if isinstance(raw, str):
-        try:
-            data = json.loads(raw)
-            return data if isinstance(data, dict) else {}
-        except json.JSONDecodeError:
-            return {}
-
-    if isinstance(raw, dict):
-        return raw
-
-    return {}
-
-
-def save_light_browser_presets(presets):
-    localS.setItem(
-        LIGHT_PRESET_STORAGE_KEY,
-        json.dumps(presets, ensure_ascii=False)
-    )
-
-
-def delete_light_browser_preset(name, presets):
-    if name in presets:
-        del presets[name]
-        save_light_browser_presets(presets)
-
-if "pending_light_preset_data" in st.session_state:
-    pending_data = st.session_state.pop("pending_light_preset_data")
-    apply_light_preset_data(pending_data)
 
 # =========================
 # 運試しモード
@@ -301,65 +256,7 @@ elif mode == "かんたん診断":
                 key="preset_max_attempts"
             )
 
-        st.markdown("### プリセット")
-
-        light_presets = load_light_browser_presets()
-        light_preset_names = [""] + list(light_presets.keys())
-
-        preset_name_input = st.text_input(
-            "保存するプリセット名",
-            key="light_preset_name_input"
-        )
-
-        preset_note_input = st.text_input(
-            "メモ（任意）",
-            key="light_preset_note_input"
-        )
-
-        selected_preset_name = st.selectbox(
-            "保存済みプリセット",
-            light_preset_names,
-            key="selected_light_preset_name"
-        )
-
-        preset_save_col, preset_load_col, preset_delete_col = st.columns(3)
-
-        with preset_save_col:
-            if st.button("保存", use_container_width=True, key="light_preset_save_button"):
-                preset_name = preset_name_input.strip()
-                if preset_name:
-                    light_presets[preset_name] = {
-                        "mode": "かんたん診断",
-                        "version": 1,
-                        "note": preset_note_input.strip(),
-                        "data": build_light_preset_data()
-                    }
-                    save_light_browser_presets(light_presets)
-                    st.success(f"プリセット「{preset_name}」を保存しました")
-                else:
-                    st.warning("プリセット名を入力してください")
-
-        with preset_load_col:
-            if st.button("読み込む", use_container_width=True, key="light_preset_load_button"):
-                if selected_preset_name:
-                    preset = light_presets.get(selected_preset_name)
-                    if preset and preset.get("mode") == "かんたん診断":
-                        st.session_state["pending_light_preset_data"] = preset.get("data", {})
-                        st.rerun()
-                    else:
-                        st.warning("読み込めるプリセットが見つかりませんでした")
-                else:
-                    st.warning("読み込むプリセットを選んでください")
-
-        with preset_delete_col:
-            if st.button("削除", use_container_width=True, key="light_preset_delete_button"):
-                if selected_preset_name:
-                    delete_light_browser_preset(selected_preset_name, light_presets)
-                    st.success(f"プリセット「{selected_preset_name}」を削除しました")
-                    st.rerun()
-                else:
-                    st.warning("削除するプリセットを選んでください")
-
+       
         run_light = st.button("目安を見る", use_container_width=True, type="primary")
         st.caption("1周あたり樹脂20で換算します。")
         st.caption("詳細設定でエリクシル・振り直しを変更できます。")
