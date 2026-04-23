@@ -129,9 +129,16 @@ def generate_artifact(part, score_weights=None, forced_set=None):
 
     initial_substats = substats.copy()
 
-    upgrades = 4 if num_substats == 3 else 5
+if num_substats == 3:
+    remaining_subs = [s for s in available_substats if s not in substats]
+    new_sub = random.choice(remaining_subs)
+    substats[new_sub] = random.choice(substat_values[new_sub])
 
-    for _ in range(upgrades):
+    for _ in range(4):
+        s = random.choice(list(substats.keys()))
+        substats[s] += random.choice(substat_values[s])
+else:
+    for _ in range(5):
         s = random.choice(list(substats.keys()))
         substats[s] += random.choice(substat_values[s])
 
