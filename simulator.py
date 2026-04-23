@@ -405,6 +405,98 @@ def simulate_until_total_score_for_custom_build(
             return reinforce_count, best_total, best_selected
 
     return None, None, selected
+
+def simulate_score_after_fixed_attempts_for_custom_build(
+    build,
+    total_attempts,
+    elixir_interval=250,
+    reroll_interval=1000,
+    reroll_times=10
+):
+    selected = {
+        p: {
+            "セット1": None,
+            "セット2": None
+        }
+        for p in parts
+    }
+
+    reinforce_count = 0
+
+    mainstats = build["mainstats"]
+    fixed_substats = build["elixir_fixed_substats"]
+    score_weights = build["score_weights"]
+
+    while reinforce_count < total_attempts:
+        part = random.choice(parts)
+        artifact = generate_artifact(part)
+        reinforce_count += 1
+
+        # メイン一致チェック
+        if artifact["メイン"] == mainstats[part]:
+            artifact["スコア"] = round(
+                calc_weighted_score(artifact["サブ"], score_weights), 1
+            )
+
+            artifact_set = artifact["セット"]
+            current = selected[part][artifact_set]
+
+            if current is None or artifact["スコア"] > current["スコア"]:
+                selected[part][artifact_set] = artifact
+
+        # エリクシル
+        if elixir_interval > 0 and reinforce_count % elixir_interval == 0:
+            best_total, best_combo = find_best_valid_combo(selected)
+
+            if best_combo is not None:
+                weakest_artifact = min(best_combo, key=lambda a: a["スコア"])
+                weakest_part = weakest_artifact["部位"]
+                weakest_set = weakest_artifact["セット"]
+
+                elixir = generate_elixir_artifact(
+                    weakest_part,
+                    mainstats[weakest_part],
+                    fixed_substats[weakest_part]
+                )
+
+                elixir["セット"] = weakest_set
+                elixir["スコア"] = round(
+                    calc_weighted_score(elixir["サブ"], score_weights), 1
+                )
+
+                current = selected[weakest_part][weakest_set]
+                if current is None or elixir["スコア"] > current["スコア"]:
+                    selected[weakest_part][weakest_set] = elixir
+
+        # 振り直し
+        if reroll_interval > 0 and reinforce_count % reroll_interval == 0:
+            best_total, best_combo = find_best_valid_combo(selected)
+
+            if best_combo is not None:
+                weakest_artifact = min(best_combo, key=lambda a: a["スコア"])
+                weakest_part = weakest_artifact["部位"]
+                weakest_set = weakest_artifact["セット"]
+
+                rerolled = reroll_upgrade_only(
+                    weakest_artifact,
+                    reroll_times=reroll_times,
+                    score_weights=score_weights
+                )
+
+                rerolled["セット"] = weakest_set
+
+                current = selected[weakest_part][weakest_set]
+                if current is None or rerolled["スコア"] > current["スコア"]:
+                    selected[weakest_part][weakest_set] = rerolled
+
+    best_total, best_combo = find_best_valid_combo(selected)
+
+    if best_total is None:
+        return 0, selected
+
+    best_selected = {artifact["部位"]: artifact for artifact in best_combo}
+    return best_total, best_selected
+
 # =========================
 # 単体シミュ用の簡易デフォルトビルド
 # =========================
@@ -539,6 +631,57 @@ def run_custom_build_simulation(
         "worst10": summary["worst10"],
         "results": summary["results"],
         "success_rate": success_count / trials if trials > 0 else 0
+    }
+
+
+def run_fixed_period_build_simulation(
+    character_name,
+    build_name,
+    selected_mainstats,
+    score_mode,
+    days,
+    resin_per_day,
+    trials=100,
+    elixir_interval=250,
+    reroll_interval=1000,
+    reroll_times=10
+):
+    character_data = character_builds[character_name]
+    build_data = character_data["builds"][build_name]
+
+    custom_build = {
+        "mainstats": selected_mainstats,
+        "elixir_fixed_substats": build_data["elixir_fixed_substats"],
+        "score_weights": build_data["score_weight_options"][score_mode]
+    }
+
+    total_attempts = int(days * resin_per_day / 20)
+    results = []
+
+    for _ in range(trials):
+        total_score, _ = simulate_score_after_fixed_attempts_for_custom_build(
+            build=custom_build,
+            total_attempts=total_attempts,
+            elixir_interval=elixir_interval,
+            reroll_interval=reroll_interval,
+            reroll_times=reroll_times
+        )
+        results.append(total_score)
+
+    summary = summarize_results(results)
+
+    return {
+        "character": character_name,
+        "label": build_name,
+        "days": days,
+        "resin_per_day": resin_per_day,
+        "total_attempts": total_attempts,
+        "mainstats": selected_mainstats,
+        "average": summary["average"],
+        "median": summary["median"],
+        "best10": summary["best10"],
+        "worst10": summary["worst10"],
+        "results": summary["results"]
     }
 
 # =========================

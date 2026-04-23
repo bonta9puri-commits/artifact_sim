@@ -7,7 +7,8 @@ from simulator import (
     build_selected_mainstats,
     run_custom_build_simulation,
     character_builds,
-    parts
+    parts,
+    run_fixed_period_build_simulation
 )
 
 st.set_page_config(
