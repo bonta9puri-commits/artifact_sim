@@ -109,12 +109,12 @@ def get_forbidden_substat(mainstat):
     else:
         return None
 
-def generate_artifact(part, score_weights=None):
+def generate_artifact(part, score_weights=None, forced_set=None):
     candidates = list(mainstat_weights[part].keys())
     weights = list(mainstat_weights[part].values())
     main = random.choices(candidates, weights=weights, k=1)[0]
 
-    artifact_set = random.choice(set_names)
+    artifact_set = forced_set if forced_set is not None else random.choice(set_names)
 
     num_substats = random.choices([3, 4], weights=[80, 20], k=1)[0]
 
@@ -342,6 +342,32 @@ def reroll_upgrade_only(artifact, reroll_times=10, score_weights=None):
             best = candidate
 
     return best
+
+
+def try_apply_strongbox(selected, build, strongbox_count, strongbox_target_set="セット1"):
+    mainstats = build["mainstats"]
+    score_weights = build["score_weights"]
+
+    while strongbox_count >= 3:
+        strongbox_count -= 3
+
+        part = random.choice(parts)
+        artifact = generate_artifact(
+            part,
+            score_weights=score_weights,
+            forced_set=strongbox_target_set
+        )
+
+        if artifact["メイン"] == mainstats[part]:
+            artifact["スコア"] = round(
+                calc_weighted_score(artifact["サブ"], score_weights), 1
+            )
+
+            current = selected[part][strongbox_target_set]
+            if current is None or artifact["スコア"] > current["スコア"]:
+                selected[part][strongbox_target_set] = artifact
+
+    return selected, strongbox_count
 # =========================
 # カスタムビルド用シミュ
 # =========================
@@ -352,7 +378,9 @@ def simulate_until_total_score_for_custom_build(
     reroll_interval=1000,
     reroll_times=10,
     max_attempts=100000,
-    initial_selected=None
+    initial_selected=None,
+    strongbox_enabled=False,
+    strongbox_target_set="セット1"
 ):
     if initial_selected is None:
         selected = {
@@ -372,6 +400,7 @@ def simulate_until_total_score_for_custom_build(
         }
 
     reinforce_count = 0
+    strongbox_count = 0
 
     mainstats = build["mainstats"]
     fixed_substats = build["elixir_fixed_substats"]
@@ -383,6 +412,8 @@ def simulate_until_total_score_for_custom_build(
         reinforce_count += 1
 
         # メイン一致チェック
+        used_artifact = False
+        used_artifact = False
         if artifact["メイン"] == mainstats[part]:
             artifact["スコア"] = round(
                 calc_weighted_score(artifact["サブ"], score_weights), 1
@@ -393,6 +424,16 @@ def simulate_until_total_score_for_custom_build(
 
             if current is None or artifact["スコア"] > current["スコア"]:
                 selected[part][artifact_set] = artifact
+                used_artifact = True
+
+        if strongbox_enabled and not used_artifact:
+            strongbox_count += 1
+            selected, strongbox_count = try_apply_strongbox(
+                selected,
+                build,
+                strongbox_count,
+                strongbox_target_set=strongbox_target_set
+            )
 
         # エリクシル
         if elixir_interval > 0 and reinforce_count % elixir_interval == 0:
@@ -453,7 +494,9 @@ def simulate_score_after_fixed_attempts_for_custom_build(
     elixir_interval=250,
     reroll_interval=1000,
     reroll_times=10,
-    initial_selected=None
+    initial_selected=None,
+    strongbox_enabled=False,
+    strongbox_target_set="セット1"
 ):
     if initial_selected is None:
         selected = {
@@ -473,6 +516,7 @@ def simulate_score_after_fixed_attempts_for_custom_build(
         }
 
     reinforce_count = 0
+    strongbox_count = 0
 
     mainstats = build["mainstats"]
     fixed_substats = build["elixir_fixed_substats"]
@@ -483,6 +527,7 @@ def simulate_score_after_fixed_attempts_for_custom_build(
         artifact = generate_artifact(part)
         reinforce_count += 1
 
+        used_artifact = False
         if artifact["メイン"] == mainstats[part]:
             artifact["スコア"] = round(
                 calc_weighted_score(artifact["サブ"], score_weights), 1
@@ -493,6 +538,16 @@ def simulate_score_after_fixed_attempts_for_custom_build(
 
             if current is None or artifact["スコア"] > current["スコア"]:
                 selected[part][artifact_set] = artifact
+                used_artifact = True
+
+        if strongbox_enabled and not used_artifact:
+            strongbox_count += 1
+            selected, strongbox_count = try_apply_strongbox(
+                selected,
+                build,
+                strongbox_count,
+                strongbox_target_set=strongbox_target_set
+            )
 
         if elixir_interval > 0 and reinforce_count % elixir_interval == 0:
             best_total, best_combo = find_best_valid_combo(selected)
@@ -553,7 +608,9 @@ def simulate_until_total_score(
     elixir_interval=250,
     reroll_interval=1000,
     reroll_times=10,
-    max_attempts=100000
+    max_attempts=100000,
+    strongbox_enabled=False,
+    strongbox_target_set="セット1"
 ):
     default_build = {
         "mainstats": {
@@ -583,7 +640,9 @@ def simulate_until_total_score(
         elixir_interval=elixir_interval,
         reroll_interval=reroll_interval,
         reroll_times=reroll_times,
-        max_attempts=max_attempts
+        max_attempts=max_attempts,
+        strongbox_enabled=strongbox_enabled,
+        strongbox_target_set=strongbox_target_set
     )
 
 # =========================
@@ -595,7 +654,9 @@ def run_multiple_simulations(
     elixir_interval=250,
     reroll_interval=1000,
     reroll_times=10,
-    max_attempts=100000
+    max_attempts=100000,
+    strongbox_enabled=False,
+    strongbox_target_set="セット1"
 ):
     results = []
     success_count = 0
@@ -606,7 +667,9 @@ def run_multiple_simulations(
             elixir_interval=elixir_interval,
             reroll_interval=reroll_interval,
             reroll_times=reroll_times,
-            max_attempts=max_attempts
+            max_attempts=max_attempts,
+            strongbox_enabled=strongbox_enabled,
+            strongbox_target_set=strongbox_target_set
         )
 
         if count is not None:
@@ -639,7 +702,9 @@ def run_custom_build_simulation(
     reroll_interval=1000,
     reroll_times=10,
     max_attempts=100000,
-    current_gear=None
+    current_gear=None,
+    strongbox_enabled=False,
+    strongbox_target_set="セット1"
 ):
     character_data = character_builds[character_name]
     build_data = character_data["builds"][build_name]
@@ -663,7 +728,9 @@ def run_custom_build_simulation(
             reroll_interval=reroll_interval,
             reroll_times=reroll_times,
             max_attempts=max_attempts,
-            initial_selected=initial_selected
+            initial_selected=initial_selected,
+            strongbox_enabled=strongbox_enabled,
+            strongbox_target_set=strongbox_target_set
         )
 
         if count is not None:
@@ -696,7 +763,9 @@ def run_fixed_period_build_simulation(
     elixir_interval=250,
     reroll_interval=1000,
     reroll_times=10,
-    current_gear=None
+    current_gear=None,
+    strongbox_enabled=False,
+    strongbox_target_set="セット1"
 ):
     character_data = character_builds[character_name]
     build_data = character_data["builds"][build_name]
@@ -719,7 +788,9 @@ def run_fixed_period_build_simulation(
             elixir_interval=elixir_interval,
             reroll_interval=reroll_interval,
             reroll_times=reroll_times,
-            initial_selected=initial_selected
+            initial_selected=initial_selected,
+            strongbox_enabled=strongbox_enabled,
+            strongbox_target_set=strongbox_target_set
         )
         results.append(total_score)
 
@@ -734,8 +805,8 @@ def run_fixed_period_build_simulation(
         "mainstats": selected_mainstats,
         "average": summary["average"],
         "median": summary["median"],
-        "best10": summary["worst10"],
-        "worst10": summary["best10"],
+        "best10": summary["best10"],
+        "worst10": summary["worst10"],
         "results": summary["results"]
     }
 

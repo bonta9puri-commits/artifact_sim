@@ -49,6 +49,8 @@ def build_light_query_params():
         "reroll_interval": str(data["reroll_interval"]),
         "reroll_times": str(data["reroll_times"]),
         "max_attempts": str(data["max_attempts"]),
+        "strongbox_enabled": "1" if data["strongbox_enabled"] else "0",
+        "strongbox_target_set": data["strongbox_target_set"],
     }
 
 
@@ -72,6 +74,8 @@ def apply_light_query_params():
     st.session_state["preset_reroll_interval"] = int(params.get("reroll_interval", 0))
     st.session_state["preset_reroll_times"] = int(params.get("reroll_times", 1))
     st.session_state["preset_max_attempts"] = int(params.get("max_attempts", 100000))
+    st.session_state["preset_strongbox_enabled"] = params.get("strongbox_enabled", "0") == "1"
+    st.session_state["preset_strongbox_target_set"] = params.get("strongbox_target_set", "セット1")
 
 def build_light_preset_data():
     return {
@@ -88,7 +92,9 @@ def build_light_preset_data():
         "elixir_interval": st.session_state.get("preset_elixir_interval", 0),
         "reroll_interval": st.session_state.get("preset_reroll_interval", 0),
         "reroll_times": st.session_state.get("preset_reroll_times", 1),
-        "max_attempts": st.session_state.get("preset_max_attempts", 100000)
+        "max_attempts": st.session_state.get("preset_max_attempts", 100000),
+        "strongbox_enabled": st.session_state.get("preset_strongbox_enabled", False),
+        "strongbox_target_set": st.session_state.get("preset_strongbox_target_set", "セット1")
     }
 
 
@@ -107,6 +113,8 @@ def apply_light_preset_data(data):
     st.session_state["preset_reroll_interval"] = data.get("reroll_interval", 0)
     st.session_state["preset_reroll_times"] = data.get("reroll_times", 1)
     st.session_state["preset_max_attempts"] = data.get("max_attempts", 100000)
+    st.session_state["preset_strongbox_enabled"] = data.get("strongbox_enabled", False)
+    st.session_state["preset_strongbox_target_set"] = data.get("strongbox_target_set", "セット1")
 
 def build_current_gear_from_inputs(gear_inputs):
     current_gear = {}
@@ -319,6 +327,18 @@ elif mode == "かんたん診断":
                 key="preset_reroll_times"
             )
 
+            strongbox_enabled = st.checkbox(
+                "廻聖を使う",
+                value=False,
+                key="preset_strongbox_enabled"
+            )
+
+            strongbox_target_set = st.selectbox(
+                "廻聖の対象セット",
+                ["セット1", "セット2"],
+                key="preset_strongbox_target_set"
+            )
+
             max_attempts = st.number_input(
                 "最大試行回数",
                 min_value=1000,
@@ -337,7 +357,7 @@ elif mode == "かんたん診断":
             st.success("URLを更新しました。今のURLをそのまま共有できます。")
 
         st.caption("1周あたり樹脂20で換算します。")
-        st.caption("詳細設定でエリクシル・振り直しを変更できます。")
+        st.caption("詳細設定でエリクシル・振り直し・廻聖を変更できます。")
         st.caption("目安：180=実用 / 200=強い / 220+=ガチ")
 
     with right_col:
@@ -362,7 +382,9 @@ elif mode == "かんたん診断":
                     elixir_interval=elixir_interval,
                     reroll_interval=reroll_interval,
                     reroll_times=reroll_times,
-                    max_attempts=max_attempts
+                    max_attempts=max_attempts,
+                    strongbox_enabled=strongbox_enabled,
+                    strongbox_target_set=strongbox_target_set
                 )
 
             st.markdown(
@@ -381,6 +403,9 @@ elif mode == "かんたん診断":
                 st.write(f"**エリクシル使用間隔**: {elixir_interval}")
                 st.write(f"**振り直し使用間隔**: {reroll_interval}")
                 st.write(f"**振り直し1回の試行数**: {reroll_times}")
+                st.write(f"**廻聖を使う**: {'あり' if strongbox_enabled else 'なし'}")
+                if strongbox_enabled:
+                    st.write(f"**廻聖の対象セット**: {strongbox_target_set}")
                 st.write(f"**最大試行回数**: {max_attempts}")
 
                 weights = build_data["score_weight_options"][score_mode]
@@ -572,6 +597,18 @@ elif mode == "期間シミュ":
                 step=1,
                 key="period_reroll_times"
             )
+
+            strongbox_enabled = st.checkbox(
+                "廻聖を使う",
+                value=False,
+                key="period_strongbox_enabled"
+            )
+
+            strongbox_target_set = st.selectbox(
+                "廻聖の対象セット",
+                ["セット1", "セット2"],
+                key="period_strongbox_target_set"
+            )
         with st.expander("現在使っている聖遺物を入力（任意）"):
             st.caption("各部位の現在スコアを入力すると、その装備を初期状態としてシミュします。0なら未入力扱いです。")
             st.caption("セット揃えたいほうをセット１、自由枠をセット２としてください。")
@@ -653,7 +690,9 @@ elif mode == "期間シミュ":
                  elixir_interval=elixir_interval,
                  reroll_interval=reroll_interval,
                  reroll_times=reroll_times,
-                 current_gear=current_gear
+                 current_gear=current_gear,
+                 strongbox_enabled=strongbox_enabled,
+                 strongbox_target_set=strongbox_target_set
              )
 
             st.markdown(
@@ -681,6 +720,9 @@ elif mode == "期間シミュ":
                 st.write(f"**エリクシル使用間隔**: {elixir_interval}")
                 st.write(f"**振り直し使用間隔**: {reroll_interval}")
                 st.write(f"**振り直し1回の試行数**: {reroll_times}")
+                st.write(f"**廻聖を使う**: {'あり' if strongbox_enabled else 'なし'}")
+                if strongbox_enabled:
+                    st.write(f"**廻聖の対象セット**: {strongbox_target_set}")
                 st.write(f"**総試行回数**: {result['total_attempts']}")
                 if current_gear:
                     st.write("**現在装備入力**: あり")
@@ -795,7 +837,9 @@ elif mode == "シミュ":
                     elixir_interval=elixir_interval,
                     reroll_interval=reroll_interval,
                     reroll_times=reroll_times,
-                    max_attempts=max_attempts
+                    max_attempts=max_attempts,
+                    strongbox_enabled=strongbox_enabled,
+                    strongbox_target_set=strongbox_target_set
                 )
 
             success_col1, success_col2 = st.columns(2)
