@@ -752,19 +752,38 @@ elif mode == "期間シミュ":
 
         else:
             st.info("左で条件を設定してシミュを開始してください。")
-test_params = DamageInput(
-    base_atk=800,
-    flat_atk=500,
-    atk_percent=0.5,
-    talent_multiplier=2.0,
-    dmg_bonus=0.466,
-    crit_rate=0.7,
-    crit_dmg=1.4,
-    enemy_def_multiplier=0.5,
-    enemy_res_multiplier=0.9,
-    reaction_multiplier=1.0,
+st.subheader("ダメージシミュレーション（試作）")
+
+base_atk = st.number_input("基礎攻撃力", value=800.0)
+flat_atk = st.number_input("加算攻撃力", value=500.0)
+atk_percent = st.number_input("攻撃力%", value=0.5)
+talent_multiplier = st.number_input("天賦倍率", value=2.0)
+dmg_bonus = st.number_input("ダメージバフ%", value=0.466)
+crit_rate = st.number_input("会心率", value=0.7)
+crit_dmg = st.number_input("会心ダメージ", value=1.4)
+enemy_def_multiplier = st.number_input("敵防御補正", value=0.5)
+enemy_res_multiplier = st.number_input("敵耐性補正", value=0.9)
+reaction_multiplier = st.number_input("反応倍率", value=1.0)
+
+params = DamageInput(
+    base_atk=base_atk,
+    flat_atk=flat_atk,
+    atk_percent=atk_percent,
+    talent_multiplier=talent_multiplier,
+    dmg_bonus=dmg_bonus,
+    crit_rate=crit_rate,
+    crit_dmg=crit_dmg,
+    enemy_def_multiplier=enemy_def_multiplier,
+    enemy_res_multiplier=enemy_res_multiplier,
+    reaction_multiplier=reaction_multiplier,
 )
 
+result = calc_damage_breakdown(params)
+
+st.write("総攻撃力", result["total_atk"])
+st.write("非会心ダメージ", result["final_noncrit"])
+st.write("会心ダメージ", result["final_crit"])
+st.write("期待値ダメージ", result["expected_damage"])
 test_result = calc_damage_breakdown(test_params)
 st.write(test_result)
 
