@@ -865,7 +865,7 @@ elif mode == "シミュ":
 with st.sidebar:
     st.markdown("---")
     st.subheader("📺 公式YouTube")
-    st.link_button("チャンネル登録で応援する", "https://www.youtube.com/@あなたのチャンネルID" )
+    st.link_button("チャンネル登録で応援する", "https://www.youtube.com/channel/UC_-uyn7NeDPhBqxFEQ8gLwQ" )
     
     st.markdown("---")
     st.subheader("💬 フィードバック")
