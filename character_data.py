@@ -241,7 +241,6 @@ character_builds = {
             }
         }
     },
-,
 "ベネット": {
     "element": "炎",
     "weapon": "片手剣",
@@ -268,9 +267,8 @@ character_builds = {
             "default_target_score": 160
         }
     }
-}
+},
 
-,
 "ヌヴィレット": {
     "element": "水",
     "weapon": "法器",
@@ -297,9 +295,8 @@ character_builds = {
             "default_target_score": 180
         }
     }
-}
+},
 
-,
 "夜蘭": {
     "element": "水",
     "weapon": "弓",
@@ -326,9 +323,8 @@ character_builds = {
             "default_target_score": 180
         }
     }
-}
+},
 
-,
 "雷電将軍": {
     "element": "雷",
     "weapon": "長柄武器",
@@ -355,9 +351,8 @@ character_builds = {
             "default_target_score": 180
         }
     }
-}
+},
 
-,
 "フィッシュル": {
     "element": "雷",
     "weapon": "弓",
@@ -384,9 +379,8 @@ character_builds = {
             "default_target_score": 170
         }
     }
-}
+},
 
-,
 "神里綾華": {
     "element": "氷",
     "weapon": "片手剣",
@@ -413,9 +407,8 @@ character_builds = {
             "default_target_score": 190
         }
     }
-}
+},
 
-,
 "エスコフィエ": {
     "element": "氷",
     "weapon": "長柄武器",
@@ -442,9 +435,8 @@ character_builds = {
             "default_target_score": 170
         }
     }
-}
+},
 
-,
 "楓原万葉": {
     "element": "風",
     "weapon": "片手剣",
@@ -471,9 +463,7 @@ character_builds = {
             "default_target_score": 160
         }
     }
-}
-
-,
+},
 "ファルカ": {
     "element": "風",
     "weapon": "両手剣",
@@ -489,20 +479,18 @@ character_builds = {
                 "冠": ["攻撃%", "会心率", "会心ダメージ"]
             },
             "score_weight_options": COMMON_SCORE_TEMPLATES,
-            "default_score_mode": "熟知型",
+            "default_score_mode": "攻撃力型",
             "elixir_fixed_substats": {
-                "花": ["元素熟知", "元素チャージ効率"],
-                "羽": ["元素熟知", "元素チャージ効率"],
-                "時計": ["元素熟知", "元素チャージ効率"],
-                "杯": ["元素熟知", "元素チャージ効率"],
-                "冠": ["元素熟知", "元素チャージ効率"]
+                "花": ["会心率", "会心ダメージ"],
+                "羽": ["会心率", "会心ダメージ"],
+                "時計": ["会心率", "会心ダメージ"],
+                "杯": ["会心率", "会心ダメージ"],
+                "冠": ["会心率", "会心ダメージ"]
             },
             "default_target_score": 160
         }
     }
-}
-
-,
+},
 "荒瀧一斗": {
     "element": "岩",
     "weapon": "両手剣",
@@ -529,9 +517,7 @@ character_builds = {
             "default_target_score": 180
         }
     }
-}
-
-,
+},
 "シロネン": {
     "element": "岩",
     "weapon": "片手剣",
@@ -558,9 +544,8 @@ character_builds = {
             "default_target_score": 170
         }
     }
-}
+},
 
-,
 "ナヒーダ": {
     "element": "草",
     "weapon": "法器",
@@ -587,9 +572,8 @@ character_builds = {
             "default_target_score": 170
         }
     }
-}
+},
 
-,
 "キィニチ": {
     "element": "草",
     "weapon": "両手剣",
@@ -617,3 +601,4 @@ character_builds = {
         }
     }
 }
+]
