@@ -601,4 +601,4 @@ character_builds = {
         }
     }
 }
-]
+}
