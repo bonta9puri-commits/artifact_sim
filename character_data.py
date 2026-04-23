@@ -74,30 +74,66 @@ character_builds = {
         }
     },
 
-    "フリーナ": {
-        "element": "水",
-        "weapon": "片手剣",
-        "builds": {
-            "サポート": {
-                "fixed_mainstats": {
-                    "花": "HP",
-                    "羽": "攻撃力"
+"フリーナ": {
+    "element": "水",
+    "weapon": "片手剣",
+    "builds": {
+        "サポート": {
+            "fixed_mainstats": {
+                "花": "HP",
+                "羽": "攻撃力"
+            },
+            "mainstat_options": {
+                "時計": ["HP%", "元素チャージ効率"],
+                "杯": ["HP%", "水ダメージ"],
+                "冠": ["会心率", "会心ダメージ", "HP%"]
+            },
+            "score_weight_options": COMMON_SCORE_TEMPLATES,
+            "default_score_mode": "HP型",
+            "elixir_fixed_substats": {
+                "花": ["会心率", "会心ダメージ"],
+                "羽": ["会心率", "会心ダメージ"],
+                "時計": ["会心率", "会心ダメージ"],
+                "杯": ["会心率", "会心ダメージ"],
+                "冠": ["会心率", "会心ダメージ"]
+            },
+            "default_target_score": 180,
+
+            "damage_preview": {
+                "stat_type": "HP",
+
+                "base_hp": 15307.39,
+                "base_atk": 243.96,
+                "base_def": 695.54,
+
+                "ascension_stat": {
+                    "type": "会心率",
+                    "value": 19.2
                 },
-                "mainstat_options": {
-                    "時計": ["HP%", "元素チャージ効率"],
-                    "杯": ["HP%", "水ダメージ"],
-                    "冠": ["会心率", "会心ダメージ", "HP%"]
+
+                "weapon_base_stat": 542,
+                "weapon_sub_stat": {
+                    "会心ダメージ": 88.2
                 },
-                "score_weight_options": COMMON_SCORE_TEMPLATES,
-                "default_score_mode": "HP型",
-                "elixir_fixed_substats": {
-                    "花": ["会心率", "会心ダメージ"],
-                    "羽": ["会心率", "会心ダメージ"],
-                    "時計": ["会心率", "会心ダメージ"],
-                    "杯": ["会心率", "会心ダメージ"],
-                    "冠": ["会心率", "会心ダメージ"]
+
+                "base_crit_rate": 5.0,
+                "base_crit_damage": 50.0,
+
+                "extra_stats": {
+                    "HP%": 0.0,
+                    "会心率": 0.0,
+                    "会心ダメージ": 0.0,
+                    "元素チャージ効率": 0.0,
+                    "元素熟知": 0.0
                 },
-                "default_target_score": 180
+
+                "elemental_bonus_type": "水ダメージ",
+
+                "default_enemy": {
+                    "name": "ヒルチャール",
+                    "level": 100,
+                    "resistance": 10.0
+                }
             }
         }
     },

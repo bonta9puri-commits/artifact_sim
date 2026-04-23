@@ -282,6 +282,21 @@ def calc_effective_crit_score(
         "expected_crit_value": round(expected_crit_value, 2)
     }
 
+def calc_resistance_multiplier(resistance_percent):
+    r = resistance_percent / 100.0
+
+    if r < 0:
+        return 1 - r / 2
+    elif r < 0.75:
+        return 1 - r
+    else:
+        return 1 / (1 + 4 * r)
+
+
+def calc_defense_multiplier(character_level=90, enemy_level=100, defense_reduction=0.0, defense_ignore=0.0):
+    # defense_reduction, defense_ignore は 0.0 ~ 1.0 想定
+    effective_enemy_def = (enemy_level + 100) * (1 - defense_reduction) * (1 - defense_ignore)
+    return (character_level + 100) / ((character_level + 100) + effective_enemy_def)
 
 def calc_damage_index(
     substats,
@@ -293,7 +308,12 @@ def calc_damage_index(
     flat_bonus=0.0,
     crit_rate_cap=100.0,
     overflow_mode="to_cd",
-    overflow_ratio=1.0
+    overflow_ratio=1.0,
+    character_level=90,
+    enemy_level=100,
+    enemy_resistance=10.0,
+    defense_reduction=0.0,
+    defense_ignore=0.0
 ):
     percent_key_map = {
         "攻撃": "攻撃%",
@@ -324,17 +344,38 @@ def calc_damage_index(
         overflow_ratio=overflow_ratio
     )
 
-    non_crit_index = final_stat * (1 + dmg_bonus / 100.0)
+    dmg_bonus_multiplier = 1 + dmg_bonus / 100.0
+    resistance_multiplier = calc_resistance_multiplier(enemy_resistance)
+    defense_multiplier = calc_defense_multiplier(
+        character_level=character_level,
+        enemy_level=enemy_level,
+        defense_reduction=defense_reduction,
+        defense_ignore=defense_ignore
+    )
+
+    non_crit_index = final_stat * dmg_bonus_multiplier
     crit_index = non_crit_index * (1 + crit_result["adjusted_cd"] / 100.0)
     expected_index = non_crit_index * (
         1 + (crit_result["effective_cr"] / 100.0) * (crit_result["adjusted_cd"] / 100.0)
     )
+
+    final_non_crit_index = non_crit_index * resistance_multiplier * defense_multiplier
+    final_crit_index = crit_index * resistance_multiplier * defense_multiplier
+    final_expected_index = expected_index * resistance_multiplier * defense_multiplier
 
     return {
         "final_stat": round(final_stat, 1),
         "non_crit_index": round(non_crit_index, 1),
         "crit_index": round(crit_index, 1),
         "expected_index": round(expected_index, 1),
+
+        "resistance_multiplier": round(resistance_multiplier, 4),
+        "defense_multiplier": round(defense_multiplier, 4),
+
+        "final_non_crit_index": round(final_non_crit_index, 1),
+        "final_crit_index": round(final_crit_index, 1),
+        "final_expected_index": round(final_expected_index, 1),
+
         "crit": crit_result
     }
 
@@ -1015,3 +1056,139 @@ def run_character_simulation(
     result["weapon"] = character_data.get("weapon", "-")
 
     return result
+
+def build_damage_preview_base(character_name, build_name):
+    character_data = character_builds[character_name]
+    build_data = character_data["builds"][build_name]
+
+    preview = build_data.get("damage_preview")
+    if preview is None:
+        raise ValueError(f"{character_name} / {build_name} に damage_preview がありません")
+
+    stat_type = preview.get("stat_type", "攻撃")
+
+    base_hp = preview.get("base_hp", 0.0)
+    base_atk = preview.get("base_atk", 0.0)
+    base_def = preview.get("base_def", 0.0)
+
+    weapon_base_stat = preview.get("weapon_base_stat", 0.0)
+    weapon_sub_stat = dict(preview.get("weapon_sub_stat", {}))
+
+    ascension_stat = dict(preview.get("ascension_stat", {}))
+    extra_stats = dict(preview.get("extra_stats", {}))
+
+    base_crit_rate = preview.get("base_crit_rate", 5.0)
+    base_crit_damage = preview.get("base_crit_damage", 50.0)
+    crit_rate_cap = preview.get("crit_rate_cap", 100.0)
+
+    elemental_bonus_type = preview.get("elemental_bonus_type")
+    default_enemy = dict(preview.get("default_enemy", {}))
+
+    # 参照ステータス用の基礎値
+    if stat_type == "攻撃":
+        base_stat = base_atk + weapon_base_stat
+    elif stat_type == "HP":
+        base_stat = base_hp
+    elif stat_type == "防御":
+        base_stat = base_def
+    else:
+        raise ValueError(f"未対応の stat_type: {stat_type}")
+
+    # ベース加算ステータスを作る
+    base_stats = {}
+
+    # 武器サブステ
+    for stat, value in weapon_sub_stat.items():
+        base_stats[stat] = base_stats.get(stat, 0.0) + value
+
+    # 突破ステ
+    asc_type = ascension_stat.get("type")
+    asc_value = ascension_stat.get("value", 0.0)
+    if asc_type:
+        base_stats[asc_type] = base_stats.get(asc_type, 0.0) + asc_value
+
+    # その他固定値
+    for stat, value in extra_stats.items():
+        base_stats[stat] = base_stats.get(stat, 0.0) + value
+
+    # 会心率・会心ダメの素値も合算
+    total_base_crit_rate = base_crit_rate + base_stats.get("会心率", 0.0)
+    total_base_crit_damage = base_crit_damage + base_stats.get("会心ダメージ", 0.0)
+
+    # elemental bonus を別で取りたい場合用
+    elemental_bonus = 0.0
+    if elemental_bonus_type:
+        elemental_bonus = base_stats.get(elemental_bonus_type, 0.0)
+
+    return {
+        "character": character_name,
+        "build_name": build_name,
+        "stat_type": stat_type,
+        "base_stat": round(base_stat, 2),
+        "base_hp": round(base_hp, 2),
+        "base_atk": round(base_atk, 2),
+        "base_def": round(base_def, 2),
+        "weapon_base_stat": round(weapon_base_stat, 2),
+        "base_stats": base_stats,
+        "base_crit_rate": round(total_base_crit_rate, 2),
+        "base_crit_damage": round(total_base_crit_damage, 2),
+        "crit_rate_cap": round(crit_rate_cap, 2),
+        "elemental_bonus_type": elemental_bonus_type,
+        "elemental_bonus": round(elemental_bonus, 2),
+        "default_enemy": default_enemy
+    }
+
+
+def merge_total_stats_for_damage_preview(base_stats, artifact_stats):
+    total = dict(base_stats)
+
+    for stat, value in artifact_stats.items():
+        total[stat] = total.get(stat, 0.0) + value
+
+    return total
+
+
+def calc_damage_preview_from_selected(
+    character_name,
+    build_name,
+    selected_artifacts,
+    overflow_mode="to_cd",
+    overflow_ratio=1.0
+):
+    preview_base = build_damage_preview_base(character_name, build_name)
+    artifact_stats = sum_selected_stats(selected_artifacts, include_mainstats=True)
+    total_stats = merge_total_stats_for_damage_preview(
+        preview_base["base_stats"],
+        artifact_stats
+    )
+
+    dmg_bonus = preview_base["elemental_bonus"]
+    elemental_bonus_type = preview_base.get("elemental_bonus_type")
+    if elemental_bonus_type:
+        dmg_bonus += total_stats.get(elemental_bonus_type, 0.0)
+
+    enemy = preview_base.get("default_enemy", {})
+    enemy_level = enemy.get("level", 100)
+    enemy_resistance = enemy.get("resistance", 10.0)
+
+    damage_result = calc_damage_index(
+        substats=total_stats,
+        base_stat=preview_base["base_stat"],
+        stat_type=preview_base["stat_type"],
+        base_crit_rate=preview_base["base_crit_rate"] - total_stats.get("会心率", 0.0),
+        base_crit_damage=preview_base["base_crit_damage"] - total_stats.get("会心ダメージ", 0.0),
+        dmg_bonus=dmg_bonus,
+        crit_rate_cap=preview_base["crit_rate_cap"],
+        overflow_mode=overflow_mode,
+        overflow_ratio=overflow_ratio,
+        character_level=90,
+        enemy_level=enemy_level,
+        enemy_resistance=enemy_resistance
+    )
+
+    return {
+        "preview_base": preview_base,
+        "artifact_stats": artifact_stats,
+        "total_stats": total_stats,
+        "damage_result": damage_result
+    }
