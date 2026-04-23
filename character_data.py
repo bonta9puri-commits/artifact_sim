@@ -240,37 +240,9 @@ character_builds = {
                 "default_target_score": 180
             }
         }
-    }
-}
-"ベネット: {
-    "element": "炎",
-    "weapon": "片手剣",
-    "builds": {
-        "サポーター": {
-            "fixed_mainstats": {
-                "花": "HP",
-                "羽": "攻撃力"
-            },
-            "mainstat_options": {
-                "時計": ["HP%","元素チャージ効率"],
-                "杯": ["HP%"],
-                "冠": ["HP%", "治療効果"]
-            },
-            "score_weight_options": COMMON_SCORE_TEMPLATES,
-            "default_score_mode": "HP型",
-            "elixir_fixed_substats": {
-                "花": ["会心率", "会心ダメージ"],
-                "羽": ["会心率", "会心ダメージ"],
-                "時計": ["会心率", "会心ダメージ"],
-                "杯": ["会心率", "会心ダメージ"],
-                "冠": ["会心率", "会心ダメージ"]
-            },
-            "default_target_score": 180
-        }
-    }
-}
+    },
 
-"胡桃": {
+    "胡桃": {
     "element": "炎",
     "weapon": "長柄武器",
     "builds": {
@@ -281,95 +253,11 @@ character_builds = {
             },
             "mainstat_options": {
                 "時計": ["HP%", "元素熟知"],
-                "杯": ["HP%", "炎ダメージ"],
-                "冠": ["会心率", "会心ダメージ", "HP%"]
+                "杯": ["炎ダメージ", "HP%"],
+                "冠": ["会心率", "会心ダメージ"]
             },
             "score_weight_options": COMMON_SCORE_TEMPLATES,
             "default_score_mode": "HP型",
-            "elixir_fixed_substats": {
-                "花": ["会心率", "会心ダメージ"],
-                "羽": ["会心率", "会心ダメージ"],
-                "時計": ["会心率", "会心ダメージ"],
-                "杯": ["会心率", "会心ダメージ"],
-                "冠": ["会心率", "会心ダメージ"]
-            },
-            "default_target_score": 180
-        }
-    }
-}
-
-"ヌヴィレット": {
-    "element": "水",
-    "weapon": "法器",
-    "builds": {
-        "アタッカー": {
-            "fixed_mainstats": {
-                "花": "HP",
-                "羽": "攻撃力"
-            },
-            "mainstat_options": {
-                "時計": ["HP%"],
-                "杯": ["HP%", "水ダメージ"],
-                "冠": ["会心率", "会心ダメージ", "HP%"]
-            },
-            "score_weight_options": COMMON_SCORE_TEMPLATES,
-            "default_score_mode": "HP型",
-            "elixir_fixed_substats": {
-                "花": ["会心率", "会心ダメージ"],
-                "羽": ["会心率", "会心ダメージ"],
-                "時計": ["会心率", "会心ダメージ"],
-                "杯": ["会心率", "会心ダメージ"],
-                "冠": ["会心率", "会心ダメージ"]
-            },
-            "default_target_score": 180
-        }
-    }
-}
-
-"夜蘭": {
-    "element": "水",
-    "weapon": "弓",
-    "builds": {
-        "サポート": {
-            "fixed_mainstats": {
-                "花": "HP",
-                "羽": "攻撃力"
-            },
-            "mainstat_options": {
-                "時計": ["HP%", "元素チャージ効率"],
-                "杯": ["HP%", "水ダメージ"],
-                "冠": ["会心率", "会心ダメージ", "HP%"]
-            },
-            "score_weight_options": COMMON_SCORE_TEMPLATES,
-            "default_score_mode": "HP型",
-            "elixir_fixed_substats": {
-                "花": ["会心率", "会心ダメージ"],
-                "羽": ["会心率", "会心ダメージ"],
-                "時計": ["会心率", "会心ダメージ"],
-                "杯": ["会心率", "会心ダメージ"],
-                "冠": ["会心率", "会心ダメージ"]
-            },
-            "default_target_score": 180
-        }
-    }
-}
-
-"荒瀧一斗": {
-    "element": "岩",
-    "weapon": "両手剣",
-    "builds": {
-        "アタッカー": {
-            "fixed_mainstats": {
-                "花": "HP",
-                "羽": "攻撃力"
-            },
-            "mainstat_options": {
-                "時計": ["防御%"],
-                "杯": ["岩ダメージ", "防御%"],
-                "冠": ["会心率", "会心ダメージ", "防御%"]
-            },
-            "score_weight_options": COMMON_SCORE_TEMPLATES,
-            "default_score_mode": "防御力型",
             "elixir_fixed_substats": {
                 "花": ["会心率", "会心ダメージ"],
                 "羽": ["会心率", "会心ダメージ"],
