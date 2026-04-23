@@ -856,5 +856,3 @@ elif mode == "シミュ":
                     metric_col2.metric("中央値", result["median"])
                     metric_col3.metric("良い方10%", result["best10"])
                     metric_col4.metric("沼な10%", result["worst10"])
-
-            st.caption("※比較シミュではグラフは省略しています。必要なら追加できます。")
