@@ -24,7 +24,7 @@ st.markdown("""
 
 mode = st.radio(
     "モードを選択",
-    ["運試し", "かんたん診断", "シミュ"],
+    ["運試し", "かんたん診断", "期間シュミ", "シミュ"],
     horizontal=True
 )
 
@@ -417,6 +417,208 @@ elif mode == "かんたん診断":
         else:
             st.info("左でキャラを選んで診断を開始してください。")
 
+
+elif mode == "期間シミュ":
+    st.subheader("期間シミュ")
+    st.info("一定期間厳選したとき、どれくらいのスコアに届きそうかをシミュレーションします。")
+
+    left_col, right_col = st.columns([1, 1.5])
+
+    with left_col:
+        st.markdown("### 設定")
+
+        element_filter = st.selectbox(
+            "元素で絞り込み",
+            ["すべて", "炎", "水", "雷", "氷", "風", "岩", "草"],
+            key="period_element_filter"
+        )
+
+        if element_filter == "すべて":
+            filtered_character_names = sorted(character_builds.keys())
+        else:
+            filtered_character_names = sorted(
+                name for name, data in character_builds.items()
+                if data.get("element") == element_filter
+            )
+
+        if not filtered_character_names:
+            st.warning("この元素のキャラはまだ登録されていません。")
+            st.stop()
+
+        character_name = st.selectbox(
+            "キャラを選択",
+            filtered_character_names,
+            key="period_character_name"
+        )
+
+        build_names = list(character_builds[character_name]["builds"].keys())
+        build_name = st.selectbox(
+            "ビルドを選択",
+            build_names,
+            key="period_build_name"
+        )
+
+        build_data = character_builds[character_name]["builds"][build_name]
+
+        clock_choice = st.selectbox(
+            "時計",
+            build_data["mainstat_options"]["時計"],
+            key="period_clock_choice"
+        )
+
+        goblet_choice = st.selectbox(
+            "杯",
+            build_data["mainstat_options"]["杯"],
+            key="period_goblet_choice"
+        )
+
+        circlet_choice = st.selectbox(
+            "冠",
+            build_data["mainstat_options"]["冠"],
+            key="period_circlet_choice"
+        )
+
+        score_mode_names = list(build_data["score_weight_options"].keys())
+        score_mode = st.selectbox(
+            "評価タイプ",
+            score_mode_names,
+            key="period_score_mode"
+        )
+
+        days = st.number_input(
+            "厳選日数",
+            min_value=1,
+            max_value=3650,
+            value=180,
+            step=30,
+            key="period_days"
+        )
+
+        resin_per_day = st.number_input(
+            "1日の樹脂消費量",
+            min_value=0,
+            max_value=300,
+            value=180,
+            step=20,
+            key="period_resin_per_day"
+        )
+
+        trials = st.number_input(
+            "シミュ回数",
+            min_value=10,
+            max_value=5000,
+            value=100,
+            step=10,
+            key="period_trials"
+        )
+
+        with st.expander("詳細設定"):
+            elixir_interval = st.number_input(
+                "エリクシル使用間隔（0で使用しない）",
+                min_value=0,
+                max_value=5000,
+                value=0,
+                step=50,
+                key="period_elixir_interval"
+            )
+
+            reroll_interval = st.number_input(
+                "振り直し使用間隔（0で使用しない）",
+                min_value=0,
+                max_value=10000,
+                value=0,
+                step=100,
+                key="period_reroll_interval"
+            )
+
+            reroll_times = st.number_input(
+                "振り直し1回の試行数",
+                min_value=1,
+                max_value=100,
+                value=1,
+                step=1,
+                key="period_reroll_times"
+            )
+
+        run_period = st.button("期間シミュ開始", use_container_width=True, type="primary")
+
+        st.caption("1周あたり樹脂20で換算します。")
+        st.caption("例：180日 × 180樹脂/日 → 1620回分の試行")
+        st.caption("平均・中央値・上振れ/下振れの目安を確認できます。")
+
+    with right_col:
+        st.markdown("### 結果")
+
+        if run_period:
+            selected_mainstats = build_selected_mainstats(
+                build_data,
+                clock_choice,
+                goblet_choice,
+                circlet_choice
+            )
+
+            with st.spinner("計算中..."):
+                result = run_fixed_period_build_simulation(
+                    character_name=character_name,
+                    build_name=build_name,
+                    selected_mainstats=selected_mainstats,
+                    score_mode=score_mode,
+                    days=days,
+                    resin_per_day=resin_per_day,
+                    trials=trials,
+                    elixir_interval=elixir_interval,
+                    reroll_interval=reroll_interval,
+                    reroll_times=reroll_times
+                )
+
+            st.markdown(
+                f"#### {result['character']}｜{result['label']}（{result['days']}日）"
+            )
+
+            st.write("**おすすめ構成**")
+            st.write(result["mainstats"])
+
+            summary_col1, summary_col2 = st.columns(2)
+            summary_col1.metric("総試行回数", f"{result['total_attempts']} 回")
+            summary_col2.metric("シミュ回数", f"{trials} 回")
+
+            metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
+            metric_col1.metric("平均", f"{result['average']}")
+            metric_col2.metric("中央値", f"{result['median']}")
+            metric_col3.metric("良い側10%", f"{result['best10']}")
+            metric_col4.metric("沼側10%", f"{result['worst10']}")
+
+            with st.expander("使用条件とスコア式を見る"):
+                st.write(f"**評価タイプ**: {score_mode}")
+                st.write(f"**厳選日数**: {days}")
+                st.write(f"**1日の樹脂消費量**: {resin_per_day}")
+                st.write(f"**シミュ回数**: {trials}")
+                st.write(f"**エリクシル使用間隔**: {elixir_interval}")
+                st.write(f"**振り直し使用間隔**: {reroll_interval}")
+                st.write(f"**振り直し1回の試行数**: {reroll_times}")
+                st.write(f"**総試行回数**: {result['total_attempts']}")
+
+                weights = build_data["score_weight_options"][score_mode]
+                score_text = " + ".join(
+                    f"{stat}×{weight}" for stat, weight in weights.items() if weight != 0
+                )
+                st.write("**スコア式**")
+                st.caption(score_text)
+
+            fig, ax = plt.subplots()
+            ax.hist(result["results"], bins=20)
+            ax.axvline(result["average"], linestyle="--", label="平均")
+            ax.axvline(result["median"], linestyle=":", label="中央値")
+            ax.set_title(f"{result['character']} の最終スコア分布")
+            ax.set_xlabel("最終合計スコア")
+            ax.set_ylabel("件数")
+            ax.legend()
+            st.pyplot(fig)
+
+            st.caption("右に長いほど、かなり上振れた結果です。")
+
+        else:
+            st.info("左で条件を設定してシミュを開始してください。")
 
 # =========================
 # シミュモード
