@@ -1,5 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
+from damage_calculator import DamageInput, calc_damage_breakdown
 from simulator import (
     generate_artifact,
     run_multiple_simulations,
@@ -751,7 +752,21 @@ elif mode == "期間シミュ":
 
         else:
             st.info("左で条件を設定してシミュを開始してください。")
+test_params = DamageInput(
+    base_atk=800,
+    flat_atk=500,
+    atk_percent=0.5,
+    talent_multiplier=2.0,
+    dmg_bonus=0.466,
+    crit_rate=0.7,
+    crit_dmg=1.4,
+    enemy_def_multiplier=0.5,
+    enemy_res_multiplier=0.9,
+    reaction_multiplier=1.0,
+)
 
+test_result = calc_damage_breakdown(test_params)
+st.write(test_result)
 
 with st.sidebar:
     st.markdown("---")
