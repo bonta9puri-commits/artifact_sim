@@ -585,8 +585,8 @@ elif mode == "期間シミュ":
             metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
             metric_col1.metric("平均", f"{result['average']}")
             metric_col2.metric("中央値", f"{result['median']}")
-            metric_col3.metric("良い側10%", f"{result['best10']}")
-            metric_col4.metric("沼側10%", f"{result['worst10']}")
+            metric_col3.metric("良い側10%", f"{result['worst10']}")
+            metric_col4.metric("沼側10%", f"{result['best10']}")
 
             with st.expander("使用条件とスコア式を見る"):
                 st.write(f"**評価タイプ**: {score_mode}")
