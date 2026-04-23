@@ -40,6 +40,65 @@ substat_values = {
     "防御":[16,19,21,23]
 }
 
+
+mainstat_final_values = {
+    "花": {"HP": 4780},
+    "羽": {"攻撃力": 311},
+    "時計": {
+        "攻撃%": 46.6,
+        "HP%": 46.6,
+        "防御%": 58.3,
+        "元素熟知": 187,
+        "元素チャージ効率": 51.8
+    },
+    "杯": {
+        "攻撃%": 46.6,
+        "HP%": 46.6,
+        "防御%": 58.3,
+        "元素熟知": 187,
+        "炎ダメージ": 46.6,
+        "水ダメージ": 46.6,
+        "氷ダメージ": 46.6,
+        "雷ダメージ": 46.6,
+        "風ダメージ": 46.6,
+        "岩ダメージ": 46.6,
+        "草ダメージ": 46.6,
+        "物理ダメージ": 58.3
+    },
+    "冠": {
+        "会心率": 31.1,
+        "会心ダメージ": 62.2,
+        "攻撃%": 46.6,
+        "HP%": 46.6,
+        "防御%": 58.3,
+        "元素熟知": 187,
+        "治療効果": 35.9
+    }
+}
+
+
+def sum_selected_stats(selected_artifacts, include_mainstats=True):
+    total = {}
+
+    if not selected_artifacts:
+        return total
+
+    for artifact in selected_artifacts.values():
+        if artifact is None:
+            continue
+
+        for stat, value in artifact.get("サブ", {}).items():
+            total[stat] = total.get(stat, 0) + value
+
+        if include_mainstats:
+            part = artifact.get("部位")
+            mainstat = artifact.get("メイン")
+
+            if part in mainstat_final_values and mainstat in mainstat_final_values[part]:
+                value = mainstat_final_values[part][mainstat]
+                total[mainstat] = total.get(mainstat, 0) + value
+
+    return total
 # =========================
 # メインステ候補
 # =========================
@@ -177,6 +236,107 @@ def calc_weighted_score(substats, weights):
     for stat, weight in weights.items():
         score += substats.get(stat, 0) * weight
     return score
+
+def sum_selected_substats(selected_artifacts):
+    total = {}
+
+    if not selected_artifacts:
+        return total
+
+    for artifact in selected_artifacts.values():
+        if artifact is None:
+            continue
+
+        for stat, value in artifact.get("サブ", {}).items():
+            total[stat] = total.get(stat, 0) + value
+
+    return total
+
+
+def calc_effective_crit_score(
+    substats,
+    base_crit_rate=5.0,
+    base_crit_damage=50.0,
+    crit_rate_cap=100.0,
+    overflow_mode="to_cd",
+    overflow_ratio=1.0
+):
+    total_cr = base_crit_rate + substats.get("会心率", 0)
+    total_cd = base_crit_damage + substats.get("会心ダメージ", 0)
+
+    overflow_cr = max(total_cr - crit_rate_cap, 0.0)
+    effective_cr = min(total_cr, crit_rate_cap)
+
+    adjusted_cd = total_cd
+    if overflow_mode == "to_cd":
+        adjusted_cd += overflow_cr * overflow_ratio
+
+    expected_crit_value = (effective_cr / 100.0) * adjusted_cd
+
+    return {
+        "total_cr": round(total_cr, 1),
+        "effective_cr": round(effective_cr, 1),
+        "overflow_cr": round(overflow_cr, 1),
+        "total_cd": round(total_cd, 1),
+        "adjusted_cd": round(adjusted_cd, 1),
+        "expected_crit_value": round(expected_crit_value, 2)
+    }
+
+
+def calc_damage_index(
+    substats,
+    base_stat,
+    stat_type="攻撃",
+    base_crit_rate=5.0,
+    base_crit_damage=50.0,
+    dmg_bonus=0.0,
+    flat_bonus=0.0,
+    crit_rate_cap=100.0,
+    overflow_mode="to_cd",
+    overflow_ratio=1.0
+):
+    percent_key_map = {
+        "攻撃": "攻撃%",
+        "HP": "HP%",
+        "防御": "防御%"
+    }
+
+    flat_key_map = {
+        "攻撃": "攻撃",
+        "HP": "HP",
+        "防御": "防御"
+    }
+
+    percent_key = percent_key_map[stat_type]
+    flat_key = flat_key_map[stat_type]
+
+    stat_percent = substats.get(percent_key, 0)
+    flat_stat = substats.get(flat_key, 0) + flat_bonus
+
+    final_stat = base_stat * (1 + stat_percent / 100.0) + flat_stat
+
+    crit_result = calc_effective_crit_score(
+        substats=substats,
+        base_crit_rate=base_crit_rate,
+        base_crit_damage=base_crit_damage,
+        crit_rate_cap=crit_rate_cap,
+        overflow_mode=overflow_mode,
+        overflow_ratio=overflow_ratio
+    )
+
+    non_crit_index = final_stat * (1 + dmg_bonus / 100.0)
+    crit_index = non_crit_index * (1 + crit_result["adjusted_cd"] / 100.0)
+    expected_index = non_crit_index * (
+        1 + (crit_result["effective_cr"] / 100.0) * (crit_result["adjusted_cd"] / 100.0)
+    )
+
+    return {
+        "final_stat": round(final_stat, 1),
+        "non_crit_index": round(non_crit_index, 1),
+        "crit_index": round(crit_index, 1),
+        "expected_index": round(expected_index, 1),
+        "crit": crit_result
+    }
 
 # =========================
 # 統計まとめ
