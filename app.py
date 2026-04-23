@@ -503,15 +503,20 @@ elif mode == "期間シミュ":
             key="period_resin_per_day"
         )
 
-        trials = st.number_input(
-            "シミュ回数",
-            min_value=10,
-            max_value=5000,
-            value=100,
-            step=10,
-            key="period_trials"
-        )
+trial_option = st.selectbox(
+    "シミュ精度",
+    ["軽量（100回）", "標準（300回）", "高精度（1000回）"],
+    index=1,
+    key="period_trial_option"
+)
 
+trial_map = {
+    "軽量（100回）": 100,
+    "標準（300回）": 300,
+    "高精度（1000回）": 1000
+}
+
+trials = trial_map[trial_option]
         with st.expander("詳細設定"):
             elixir_interval = st.number_input(
                 "エリクシル使用間隔（0で使用しない）",
