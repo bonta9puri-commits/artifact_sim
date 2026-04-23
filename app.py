@@ -501,11 +501,14 @@ elif mode == "期間シミュ":
             build_data["mainstat_options"]["冠"],
             key="period_circlet_choice"
         )
-
         score_mode_names = list(build_data["score_weight_options"].keys())
+        default_score_mode = build_data.get("default_score_mode", score_mode_names[0])
+        default_score_index = score_mode_names.index(default_score_mode) if default_score_mode in score_mode_names else 0
+
         score_mode = st.selectbox(
             "評価タイプ",
             score_mode_names,
+            index=default_score_index,
             key="period_score_mode"
         )
 
