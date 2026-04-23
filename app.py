@@ -16,16 +16,6 @@ st.set_page_config(
     layout="wide"
 )
 
-
-with st.sidebar:
-    st.markdown("---")
-    st.subheader("📺 公式YouTube")
-    st.link_button("チャンネル登録で応援する", "https://www.youtube.com/@あなたのチャンネルID" )
-    
-    st.markdown("---")
-    st.subheader("💬 フィードバック")
-    st.write("新キャラの追加依頼や不具合報告、応援メッセージはこちらから！")
-    st.link_button("要望・不具合報告を送る", "https://forms.gle/GSHPqzZwYCJ6xq1s7" )
     
 st.title("原神 聖遺物厳選シミュレーターβ版")
 st.markdown("""
@@ -884,3 +874,13 @@ elif mode == "シミュ":
                     metric_col2.metric("中央値", result["median"])
                     metric_col3.metric("良い方10%", result["best10"])
                     metric_col4.metric("沼な10%", result["worst10"])
+
+with st.sidebar:
+    st.markdown("---")
+    st.subheader("📺 公式YouTube")
+    st.link_button("チャンネル登録で応援する", "https://www.youtube.com/@あなたのチャンネルID" )
+    
+    st.markdown("---")
+    st.subheader("💬 フィードバック")
+    st.write("新キャラの追加依頼や不具合報告、応援メッセージはこちらから！")
+    st.link_button("要望・不具合報告を送る", "https://forms.gle/GSHPqzZwYCJ6xq1s7" )
