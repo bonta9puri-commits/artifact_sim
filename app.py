@@ -1,6 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-from damage_calculator import DamageInput, calc_damage_breakdown
+import urllib.parse
 from simulator import (
     generate_artifact,
     run_multiple_simulations,
@@ -18,7 +18,7 @@ st.set_page_config(
 )
 
     
-st.title("原神 聖遺物厳選シミュレーターv1.0")
+st.title("原神 聖遺物厳選シミュレーターβ版")
 st.markdown("""
 原神の聖遺物厳選で、目標スコアに到達するまでの試行回数をシミュレーションできるツールです。
 花・羽・時計・杯・冠の条件を指定して、厳選回数や平均日数の目安を確認できます。
@@ -28,7 +28,7 @@ st.markdown("""
 """)
 mode = st.radio(
     "モードを選択",
-    ["運試し", "かんたん診断", "期間シミュ"],
+    ["運試し", "かんたん診断", "期間シミュ", "シミュ"],
     horizontal=True
 )
 
@@ -136,6 +136,108 @@ def build_current_gear_from_inputs(gear_inputs):
         }
 
     return current_gear
+
+def build_x_intent_url(text: str) -> str:
+    return "https://twitter.com/intent/tweet?text=" + urllib.parse.quote(text)
+
+
+def build_light_result_post_text(
+    character_name,
+    build_name,
+    score_mode,
+    target_score,
+    resin_per_day,
+    result,
+    elixir_interval=0,
+    reroll_interval=0,
+    reroll_times=1,
+    strongbox_enabled=False,
+    strongbox_target_set="セット1"
+):
+    lines = [
+        "聖遺物厳選シミュ結果",
+        f"{character_name} / {build_name}",
+        f"評価: {score_mode}",
+        f"目標スコア: {target_score}",
+    ]
+
+    if result["average"] is None:
+        lines.append("結果: 最大試行回数内に到達できませんでした")
+    else:
+        lines.extend([
+            f"平均: {result['average']}回",
+            f"中央値: {result['median']}回",
+            f"良い側10%: {result['best10']}回",
+            f"沼側10%: {result['worst10']}回",
+            f"成功率: {result['success_rate'] * 100:.1f}%",
+        ])
+
+        if resin_per_day > 0:
+            runs_per_day = resin_per_day / 20
+            avg_days = result["average"] / runs_per_day
+            lines.append(f"平均日数: {avg_days:.1f}日")
+
+    option_text = []
+    if elixir_interval > 0:
+        option_text.append(f"エリクシル{elixir_interval}回ごと")
+    if reroll_interval > 0:
+        option_text.append(f"振り直し{reroll_interval}回ごと×{reroll_times}")
+    if strongbox_enabled:
+        option_text.append(f"廻聖あり({strongbox_target_set})")
+
+    if option_text:
+        lines.append("条件: " + " / ".join(option_text))
+
+    lines.extend([
+        "#原神",
+        "#聖遺物",
+    ])
+    return "\n".join(lines)
+
+
+def build_period_result_post_text(
+    character_name,
+    build_name,
+    score_mode,
+    days,
+    resin_per_day,
+    result,
+    elixir_interval=0,
+    reroll_interval=0,
+    reroll_times=1,
+    strongbox_enabled=False,
+    strongbox_target_set="セット1"
+):
+    lines = [
+        "聖遺物厳選シミュ結果",
+        f"{character_name} / {build_name}",
+        f"評価: {score_mode}",
+        f"期間: {days}日",
+        f"樹脂: 1日{resin_per_day}",
+        f"総試行回数: {result['total_attempts']}回",
+        f"平均スコア: {result['average']}",
+        f"中央値: {result['median']}",
+        f"良い側10%: {result['best10']}",
+        f"沼側10%: {result['worst10']}",
+    ]
+
+    option_text = []
+    if elixir_interval > 0:
+        option_text.append(f"エリクシル{elixir_interval}回ごと")
+    if reroll_interval > 0:
+        option_text.append(f"振り直し{reroll_interval}回ごと×{reroll_times}")
+    if strongbox_enabled:
+        option_text.append(f"廻聖あり({strongbox_target_set})")
+
+    if option_text:
+        lines.append("条件: " + " / ".join(option_text))
+
+    lines.extend([
+        "#原神",
+        "#聖遺物",
+    ])
+    return "\n".join(lines)
+
 
 
 if "query_applied" not in st.session_state:
@@ -463,6 +565,40 @@ elif mode == "かんたん診断":
 
                 st.caption("右に長いほど、沼りやすい条件です。")
 
+            post_text = build_light_result_post_text(
+                character_name=character_name,
+                build_name=build_name,
+                score_mode=score_mode,
+                target_score=target_score,
+                resin_per_day=resin_per_day,
+                result=result,
+                elixir_interval=elixir_interval,
+                reroll_interval=reroll_interval,
+                reroll_times=reroll_times,
+                strongbox_enabled=strongbox_enabled,
+                strongbox_target_set=strongbox_target_set
+            )
+
+            st.markdown("#### 共有")
+            share_col1, share_col2 = st.columns(2)
+
+            with share_col1:
+                st.code(post_text, language=None)
+                st.caption("必要なら少し書き換えてからポストできます。")
+
+            with share_col2:
+                st.link_button(
+                    "Xにポスト",
+                    build_x_intent_url(post_text),
+                    use_container_width=True
+                )
+                st.text_area(
+                    "コピペ用テキスト",
+                    value=post_text,
+                    height=220,
+                    key=f"light_post_text_{character_name}_{build_name}_{target_score}"
+                )
+
             st.caption("※シミュ結果は簡易モデルです。実際のゲーム内体感と完全一致するものではありません。")
 
         else:
@@ -750,10 +886,196 @@ elif mode == "期間シミュ":
 
             st.caption("右に長いほど、かなり上振れた結果です。")
 
+            post_text = build_period_result_post_text(
+                character_name=character_name,
+                build_name=build_name,
+                score_mode=score_mode,
+                days=days,
+                resin_per_day=resin_per_day,
+                result=result,
+                elixir_interval=elixir_interval,
+                reroll_interval=reroll_interval,
+                reroll_times=reroll_times,
+                strongbox_enabled=strongbox_enabled,
+                strongbox_target_set=strongbox_target_set
+            )
+
+            st.markdown("#### 共有")
+            share_col1, share_col2 = st.columns(2)
+
+            with share_col1:
+                st.code(post_text, language=None)
+                st.caption("必要なら少し書き換えてからポストできます。")
+
+            with share_col2:
+                st.link_button(
+                    "Xにポスト",
+                    build_x_intent_url(post_text),
+                    use_container_width=True
+                )
+                st.text_area(
+                    "コピペ用テキスト",
+                    value=post_text,
+                    height=220,
+                    key=f"period_post_text_{character_name}_{build_name}_{days}"
+                )
+
         else:
             st.info("左で条件を設定してシミュを開始してください。")
-st.subheader("ダメージシミュレーション（試作）")
 
+# =========================
+# シミュモード
+# =========================
+elif mode == "シミュ":
+    st.subheader("シミュモード")
+    st.info("目標スコアに到達するまでに必要な試行回数をシミュレートします。")
+
+    left_col, right_col = st.columns([1, 1.5])
+
+    with left_col:
+        st.markdown("### 設定")
+
+        trials = st.number_input(
+            "シミュ回数",
+            min_value=10,
+            max_value=1000,
+            value=100,
+            step=10
+        )
+
+        elixir_interval = st.number_input(
+            "エリクシル使用間隔（0で使用しない）",
+            min_value=0,
+            max_value=5000,
+            value=250,
+            step=50
+        )
+
+        reroll_interval = st.number_input(
+            "振り直し使用間隔（0で使用しない）",
+            min_value=0,
+            max_value=10000,
+            value=1000,
+            step=100
+        )
+
+        reroll_times = st.number_input(
+            "振り直し1回の試行数",
+            min_value=1,
+            max_value=100,
+            value=10,
+            step=1
+        )
+
+        max_attempts = st.number_input(
+            "最大試行回数",
+            min_value=1000,
+            max_value=10000000,
+            value=100000,
+            step=1000
+        )
+
+        sim_mode = st.radio(
+            "シミュの種類",
+            ["単体シミュ", "比較シミュ（180 / 200 / 240）"]
+        )
+
+        if sim_mode == "単体シミュ":
+            target_score = st.number_input(
+                "目標合計スコア",
+                min_value=50,
+                max_value=2000,
+                value=180,
+                step=10
+            )
+            run_single = st.button("単体シミュ開始", use_container_width=True, type="primary")
+            run_compare = False
+        else:
+            target_score = None
+            run_compare = st.button("比較シミュ開始", use_container_width=True, type="primary")
+            run_single = False
+
+        st.caption("0にすると、そのアイテムは使わない設定になります。")
+
+    with right_col:
+        st.markdown("### 結果")
+
+        if run_single:
+            with st.spinner("計算中..."):
+                result = run_multiple_simulations(
+                    trials=trials,
+                    target_score=target_score,
+                    elixir_interval=elixir_interval,
+                    reroll_interval=reroll_interval,
+                    reroll_times=reroll_times,
+                    max_attempts=max_attempts,
+                    strongbox_enabled=strongbox_enabled,
+                    strongbox_target_set=strongbox_target_set
+                )
+
+            success_col1, success_col2 = st.columns(2)
+            success_col1.metric("成功回数", f"{result['success_count']} / {trials}")
+            success_col2.metric("成功率", f"{result['success_rate'] * 100:.1f}%")
+
+            if result["average"] is None:
+                st.warning("この条件では最大試行回数内に到達しませんでした。")
+            else:
+                metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
+                metric_col1.metric("平均", result["average"])
+                metric_col2.metric("中央値", result["median"])
+                metric_col3.metric("良い方10%", result["best10"])
+                metric_col4.metric("沼な10%", result["worst10"])
+
+                fig, ax = plt.subplots()
+                ax.hist(result["results"], bins=20)
+                ax.axvline(result["average"], linestyle="--", label="平均")
+                ax.axvline(result["median"], linestyle=":", label="中央値")
+                ax.set_title("試行回数の分布")
+                ax.set_xlabel("強化回数")
+                ax.set_ylabel("件数")
+                ax.legend()
+                st.pyplot(fig)
+
+                st.caption("右に長いほど、沼りやすい条件です。")
+
+                with st.expander("試行回数一覧を見る"):
+                    st.write(result["results"])
+
+            st.caption("※シミュ結果は簡易モデルです。実際のゲーム内体感と完全一致するものではありません。")
+
+        elif run_compare:
+            compare_targets = [180, 200, 240]
+            compare_results = []
+
+            with st.spinner("計算中..."):
+                for score in compare_targets:
+                    result = run_multiple_simulations(
+                        trials=trials,
+                        target_score=score,
+                        elixir_interval=elixir_interval,
+                        reroll_interval=reroll_interval,
+                        reroll_times=reroll_times,
+                        max_attempts=max_attempts
+                    )
+                    compare_results.append((score, result))
+
+            st.markdown("#### 比較結果")
+
+            for score, result in compare_results:
+                st.markdown(f"##### 目標スコア {score}")
+
+                success_col1, success_col2 = st.columns(2)
+                success_col1.metric("成功回数", f"{result['success_count']} / {trials}")
+                success_col2.metric("成功率", f"{result['success_rate'] * 100:.1f}%")
+
+                if result["average"] is None:
+                    st.warning("この条件では最大試行回数内に到達しませんでした。")
+                else:
+                    metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
+                    metric_col1.metric("平均", result["average"])
+                    metric_col2.metric("中央値", result["median"])
+                    metric_col3.metric("良い方10%", result["best10"])
+                    metric_col4.metric("沼な10%", result["worst10"])
 
 with st.sidebar:
     st.markdown("---")
