@@ -105,6 +105,26 @@ def apply_light_preset_data(data):
     st.session_state["preset_reroll_times"] = data.get("reroll_times", 1)
     st.session_state["preset_max_attempts"] = data.get("max_attempts", 100000)
 
+def build_current_gear_from_inputs(gear_inputs):
+    current_gear = {}
+
+    for part, data in gear_inputs.items():
+        score = data["score"]
+        artifact_set = data["set"]
+        mainstat = data["main"]
+
+        if score is None or score <= 0:
+            continue
+
+        current_gear[part] = {
+            "部位": part,
+            "セット": artifact_set,
+            "メイン": mainstat,
+            "スコア": score
+        }
+
+    return current_gear
+
 
 if "query_applied" not in st.session_state:
     apply_light_query_params()
@@ -544,7 +564,56 @@ elif mode == "期間シミュ":
                 step=1,
                 key="period_reroll_times"
             )
+        with st.expander("現在使っている聖遺物を入力（任意）"):
+            st.caption("各部位の現在スコアを入力すると、その装備を初期状態としてシミュします。0なら未入力扱いです。")
 
+            current_gear_inputs = {}
+
+            for part in parts:
+                st.markdown(f"**{part}**")
+                gear_col1, gear_col2, gear_col3 = st.columns(3)
+
+                with gear_col1:
+                    artifact_set = st.selectbox(
+                        f"{part}のセット",
+                        ["セット1", "セット2"],
+                        key=f"current_gear_set_{part}"
+                    )
+
+                with gear_col2:
+                    if part in ["花", "羽"]:
+                        if part == "花":
+                            main_choice = "HP"
+                        else:
+                            main_choice = "攻撃力"
+                        st.text_input(
+                            f"{part}のメイン",
+                            value=main_choice,
+                            disabled=True,
+                            key=f"current_gear_main_display_{part}"
+                        )
+                    else:
+                        main_choice = st.selectbox(
+                            f"{part}のメイン",
+                            build_data["mainstat_options"][part],
+                            key=f"current_gear_main_{part}"
+                        )
+
+                with gear_col3:
+                    score_value = st.number_input(
+                        f"{part}の現在スコア",
+                        min_value=0.0,
+                        max_value=100.0,
+                        value=0.0,
+                        step=0.1,
+                        key=f"current_gear_score_{part}"
+                    )
+
+                current_gear_inputs[part] = {
+                    "set": artifact_set,
+                    "main": main_choice,
+                    "score": score_value
+                }
         run_period = st.button("期間シミュ開始", use_container_width=True, type="primary")
 
         st.caption("1周あたり樹脂20で換算します。")
@@ -561,6 +630,8 @@ elif mode == "期間シミュ":
                 goblet_choice,
                 circlet_choice
             )
+
+            current_gear = build_current_gear_from_inputs(current_gear_inputs)
 
             with st.spinner("計算中..."):
                 result = run_fixed_period_build_simulation(
