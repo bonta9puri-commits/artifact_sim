@@ -642,17 +642,17 @@ elif mode == "期間シミュ":
 
             with st.spinner("計算中..."):
             result = run_fixed_period_build_simulation(
-               character_name=character_name,
-               build_name=build_name,
-               selected_mainstats=selected_mainstats,
-               score_mode=score_mode,
-               days=days,
-               resin_per_day=resin_per_day,
-               trials=trials,
-               elixir_interval=elixir_interval,
-               reroll_interval=reroll_interval,
-               reroll_times=reroll_times,
-               current_gear=current_gear
+                character_name=character_name,
+                build_name=build_name,
+                selected_mainstats=selected_mainstats,
+                score_mode=score_mode,
+                days=days,
+                resin_per_day=resin_per_day,
+                trials=trials,
+                elixir_interval=elixir_interval,
+                reroll_interval=reroll_interval,
+                reroll_times=reroll_times,
+                current_gear=current_gear
             )
 
             st.markdown(
