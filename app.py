@@ -566,7 +566,7 @@ elif mode == "期間シミュ":
             )
         with st.expander("現在使っている聖遺物を入力（任意）"):
             st.caption("各部位の現在スコアを入力すると、その装備を初期状態としてシミュします。0なら未入力扱いです。")
-
+            st.caption("セット揃えたいほうをセット１、自由枠をセット２としてください。")
             current_gear_inputs = {}
 
             for part in parts:
@@ -673,6 +673,11 @@ elif mode == "期間シミュ":
                 st.write(f"**振り直し使用間隔**: {reroll_interval}")
                 st.write(f"**振り直し1回の試行数**: {reroll_times}")
                 st.write(f"**総試行回数**: {result['total_attempts']}")
+                if current_gear:
+                    st.write("**現在装備入力**: あり")
+                    st.write(current_gear)
+                else:
+                    st.write("**現在装備入力**: なし（0からシミュ）")
 
                 weights = build_data["score_weight_options"][score_mode]
                 score_text = " + ".join(
