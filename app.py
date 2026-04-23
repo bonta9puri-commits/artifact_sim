@@ -16,6 +16,17 @@ st.set_page_config(
     layout="wide"
 )
 
+
+with st.sidebar:
+    st.markdown("---")
+    st.subheader("📺 公式YouTube")
+    st.link_button("チャンネル登録で応援する", "https://www.youtube.com/@あなたのチャンネルID" )
+    
+    st.markdown("---")
+    st.subheader("💬 フィードバック")
+    st.write("新キャラの追加依頼や不具合報告、応援メッセージはこちらから！")
+    st.link_button("要望・不具合報告を送る", "https://forms.gle/GSHPqzZwYCJ6xq1s7" )
+    
 st.title("原神 聖遺物厳選シミュレーターβ版")
 st.markdown("""
 原神の聖遺物厳選で、目標スコアに到達するまでの試行回数をシミュレーションできるツールです。
@@ -440,6 +451,19 @@ elif mode == "かんたん診断":
 
         else:
             st.info("左でキャラを選んで診断を開始してください。")
+
+# メインコンテンツの最後に配置
+st.markdown("---")
+st.markdown("### 🛠️ 開発者を応援する")
+col1, col2 = st.columns([2, 1])
+
+with col1:
+    st.write("このシミュレーターは個人で開発しています。もし役に立ったら、YouTubeチャンネルをチェックしてもらえると嬉しいです！")
+
+with col2:
+    # YouTubeカラーの赤色を意識したボタン（標準ボタン）
+    st.link_button("YouTubeチャンネルへ", "https://www.youtube.com/channel/UC_-uyn7NeDPhBqxFEQ8gLwQ" )
+
 
 
 elif mode == "期間シミュ":
