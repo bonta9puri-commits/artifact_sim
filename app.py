@@ -258,9 +258,9 @@ elif mode == "かんたん診断":
 
         score_mode = st.selectbox(
             "評価タイプ",
-             score_mode_names,
-             index=default_score_index,
-             key="preset_score_mode"
+            score_mode_names,
+            index=default_score_index,
+            key="period_score_mode"
         )
 
         target_score = st.slider(
