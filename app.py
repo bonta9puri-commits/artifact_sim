@@ -257,14 +257,12 @@ elif mode == "かんたん診断":
         score_mode_names = list(build_data["score_weight_options"].keys())
         default_score_mode = build_data.get("default_score_mode", score_mode_names[0])
         default_score_index = score_mode_names.index(default_score_mode) if default_score_mode in score_mode_names else 0
-
         score_mode = st.selectbox(
-            "評価タイプ",
+           "評価タイプ",
             score_mode_names,
             index=default_score_index,
-            key="period_score_mode"
+            key="preset_score_mode"
         )
-
         target_score = st.slider(
             "目標スコア",
             min_value=120,
@@ -643,18 +641,19 @@ elif mode == "期間シミュ":
             current_gear = build_current_gear_from_inputs(current_gear_inputs)
 
             with st.spinner("計算中..."):
-                result = run_fixed_period_build_simulation(
-                    character_name=character_name,
-                    build_name=build_name,
-                    selected_mainstats=selected_mainstats,
-                    score_mode=score_mode,
-                    days=days,
-                    resin_per_day=resin_per_day,
-                    trials=trials,
-                    elixir_interval=elixir_interval,
-                    reroll_interval=reroll_interval,
-                    reroll_times=reroll_times
-                )
+            result = run_fixed_period_build_simulation(
+               character_name=character_name,
+               build_name=build_name,
+               selected_mainstats=selected_mainstats,
+               score_mode=score_mode,
+               days=days,
+               resin_per_day=resin_per_day,
+               trials=trials,
+               elixir_interval=elixir_interval,
+               reroll_interval=reroll_interval,
+               reroll_times=reroll_times,
+               current_gear=current_gear
+            )
 
             st.markdown(
                 f"#### {result['character']}｜{result['label']}（{result['days']}日）"
