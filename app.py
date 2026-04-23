@@ -256,12 +256,12 @@ score_mode_names = list(build_data["score_weight_options"].keys())
 default_score_mode = build_data.get("default_score_mode", score_mode_names[0])
 default_score_index = score_mode_names.index(default_score_mode) if default_score_mode in score_mode_names else 0
 
-score_mode = st.selectbox(
-    "評価タイプ",
-    score_mode_names,
-    index=default_score_index,
-    key="preset_score_mode"
-)
+        score_mode = st.selectbox(
+            "評価タイプ",
+             score_mode_names,
+             index=default_score_index,
+             key="preset_score_mode"
+        )
 
         target_score = st.slider(
             "目標スコア",
