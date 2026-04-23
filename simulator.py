@@ -109,19 +109,18 @@ def get_forbidden_substat(mainstat):
     else:
         return None
 
-def generate_artifact(part, score_weights=None):
+def generate_artifact(part, score_weights=None, forced_set=None):
     candidates = list(mainstat_weights[part].keys())
     weights = list(mainstat_weights[part].values())
     main = random.choices(candidates, weights=weights, k=1)[0]
 
-    artifact_set = random.choice(set_names)
+    artifact_set = forced_set if forced_set is not None else random.choice(set_names)
 
     num_substats = random.choices([3, 4], weights=[80, 20], k=1)[0]
 
     forbidden_sub = get_forbidden_substat(main)
     available_substats = [s for s in substat_pool if s != forbidden_sub]
 
-    # 初期サブ抽選
     subs = random.sample(available_substats, num_substats)
 
     substats = {}
@@ -130,19 +129,15 @@ def generate_artifact(part, score_weights=None):
 
     initial_substats = substats.copy()
 
-    # 3OPなら +4 で4つ目のサブが追加される
     if num_substats == 3:
         remaining_subs = [s for s in available_substats if s not in substats]
         new_sub = random.choice(remaining_subs)
         substats[new_sub] = random.choice(substat_values[new_sub])
 
-        # 追加後、残り4回強化
         for _ in range(4):
             s = random.choice(list(substats.keys()))
             substats[s] += random.choice(substat_values[s])
-
     else:
-        # 4OPなら最初から5回強化
         for _ in range(5):
             s = random.choice(list(substats.keys()))
             substats[s] += random.choice(substat_values[s])
@@ -164,8 +159,7 @@ def generate_artifact(part, score_weights=None):
         "サブ": substats,
         "初期OP数": num_substats,
         "スコア": score
-    }
-# =========================
+    }# =========================
 # メインステ構築（UI選択用）
 # =========================
 def build_selected_mainstats(build_data, clock_choice, goblet_choice, circlet_choice):
