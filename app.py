@@ -628,29 +628,12 @@ elif mode == "かんたん診断":
                         else:
                             st.metric("最終参照ステ", f"{damage['final_stat']:.0f}")
 
-
-                    save_title = f"{character_name}｜{build_name}｜{title}｜{days}日"
-
-                    if st.button(
-                        f"{title}を比較用に保存",
-                        key=f"save_compare_{character_name}_{build_name}_{days}_{title}"
-                    ):
-                        save_damage_compare_record(
-                            title=save_title,
-                            character_name=character_name,
-                            build_name=build_name,
-                            score_mode=score_mode,
-                            days=days,
-                            score=record["score"],
-                            selected_artifacts=selected_artifacts,
-                            preview_result=preview_result
-                        )
-                        st.success("比較用に保存しました。")
                     with top2:
                             st.metric("非会心ダメージ", f"{damage['final_non_crit_index']:.0f}")
 
                     with top3:
                             st.metric("会心ダメージ", f"{damage['final_crit_index']:.0f}")
+
                     with top4:
                             st.metric("期待値ダメージ", f"{damage['final_expected_index']:.0f}")
 
@@ -697,37 +680,6 @@ elif mode == "かんたん診断":
                 strongbox_target_set=strongbox_target_set
             )
 
-
-            with st.expander("保存したダメージ比較を見る"):
-                records = st.session_state.get("damage_compare_records", [])
-
-                if not records:
-                    st.info("まだ比較用に保存された結果はありません。")
-                else:
-                    st.write(f"保存数：{len(records)}件")
-
-                    base_expected = records[0]["expected"]
-
-                    for i, r in enumerate(records):
-                        diff = r["expected"] - base_expected
-                        diff_percent = (diff / base_expected * 100) if base_expected else 0
-
-                        st.markdown(f"#### {i + 1}. {r['title']}")
-
-                        col1, col2, col3, col4 = st.columns(4)
-                        col1.metric("スコア", f"{r['score']}")
-                        col2.metric("期待値", f"{r['expected']:.0f}", f"{diff_percent:+.1f}%")
-                        col3.metric("非会心", f"{r['non_crit']:.0f}")
-                        col4.metric("会心", f"{r['crit_damage']:.0f}")
-
-                        col5, col6, col7 = st.columns(3)
-                        col5.metric("会心率", f"{r['crit_rate']:.1f}%")
-                        col6.metric("会心ダメ", f"{r['crit_damage_stat']:.1f}%")
-                        col7.metric("最終参照ステ", f"{r['final_stat']:.0f}")
-
-                    if st.button("保存した比較結果をクリア"):
-                        st.session_state["damage_compare_records"] = []
-                        st.success("保存した比較結果をクリアしました。")
             st.markdown("#### 共有")
             share_col1, share_col2 = st.columns(2)
 
@@ -1016,6 +968,25 @@ elif mode == "期間シミュ":
                     damage = preview_result["damage_result"]
                     crit = damage["crit"]
 
+
+                    save_title = f"{character_name}｜{build_name}｜{title}｜{days}日"
+
+                    if st.button(
+                        f"{title}を比較用に保存",
+                        key=f"save_compare_{character_name}_{build_name}_{days}_{title}"
+                    ):
+                        save_damage_compare_record(
+                            title=save_title,
+                            character_name=character_name,
+                            build_name=build_name,
+                            score_mode=score_mode,
+                            days=days,
+                            score=record["score"],
+                            selected_artifacts=selected_artifacts,
+                            preview_result=preview_result
+                        )
+                        st.success("比較用に保存しました。")
+
                     st.markdown("##### ダメージ比較β")
 
                     dmg_col1, dmg_col2, dmg_col3, dmg_col4 = st.columns(4)
@@ -1128,6 +1099,37 @@ elif mode == "期間シミュ":
                 strongbox_target_set=strongbox_target_set
             )
 
+
+            with st.expander("保存したダメージ比較を見る"):
+                records = st.session_state.get("damage_compare_records", [])
+
+                if not records:
+                    st.info("まだ比較用に保存された結果はありません。")
+                else:
+                    st.write(f"保存数：{len(records)}件")
+
+                    base_expected = records[0]["expected"]
+
+                    for i, r in enumerate(records):
+                        diff = r["expected"] - base_expected
+                        diff_percent = (diff / base_expected * 100) if base_expected else 0
+
+                        st.markdown(f"#### {i + 1}. {r['title']}")
+
+                        col1, col2, col3, col4 = st.columns(4)
+                        col1.metric("スコア", f"{r['score']}")
+                        col2.metric("期待値", f"{r['expected']:.0f}", f"{diff_percent:+.1f}%")
+                        col3.metric("非会心", f"{r['non_crit']:.0f}")
+                        col4.metric("会心", f"{r['crit_damage']:.0f}")
+
+                        col5, col6, col7 = st.columns(3)
+                        col5.metric("会心率", f"{r['crit_rate']:.1f}%")
+                        col6.metric("会心ダメ", f"{r['crit_damage_stat']:.1f}%")
+                        col7.metric("最終参照ステ", f"{r['final_stat']:.0f}")
+
+                    if st.button("保存した比較結果をクリア"):
+                        st.session_state["damage_compare_records"] = []
+                        st.success("保存した比較結果をクリアしました。")
             st.markdown("#### 共有")
             share_col1, share_col2 = st.columns(2)
 
