@@ -965,33 +965,33 @@ elif mode == "期間シミュ":
 
                     st.markdown("##### ダメージ比較β")
 
-             dmg_col1, dmg_col2, dmg_col3, dmg_col4 = st.columns(4)
+                    dmg_col1, dmg_col2, dmg_col3, dmg_col4 = st.columns(4)
 
-             with dmg_col1:
-                 st.metric("非会心", f"{damage['final_non_crit_index']:.0f}")
+                    with dmg_col1:
+                        st.metric("非会心", f"{damage['final_non_crit_index']:.0f}")
 
-             with dmg_col2:
-                 st.metric("会心", f"{damage['final_crit_index']:.0f}")
+                    with dmg_col2:
+                        st.metric("会心", f"{damage['final_crit_index']:.0f}")
 
-             with dmg_col3:
-                 st.metric("期待値", f"{damage['final_expected_index']:.0f}")
+                    with dmg_col3:
+                        st.metric("期待値", f"{damage['final_expected_index']:.0f}")
 
-             with dmg_col4:
-                 st.metric("会心率", f"{crit['effective_cr']:.1f}%")
+                    with dmg_col4:
+                        st.metric("会心率", f"{crit['effective_cr']:.1f}%")
 
-             crit_col1, crit_col2, crit_col3 = st.columns(3)
+                    crit_col1, crit_col2, crit_col3 = st.columns(3)
 
-             with crit_col1:
-                 st.metric("会心ダメ", f"{crit['total_cd']:.1f}%")
+                    with crit_col1:
+                        st.metric("会心ダメ", f"{crit['total_cd']:.1f}%")
 
-             with crit_col2:
-                st.metric("溢れ会心率", f"{crit['overflow_cr']:.1f}%")
+                    with crit_col2:
+                       st.metric("溢れ会心率", f"{crit['overflow_cr']:.1f}%")
      
-             with crit_col3:
-                 st.metric("最終参照ステ", f"{damage['final_stat']:.0f}")
+                    with crit_col3:
+                        st.metric("最終参照ステ", f"{damage['final_stat']:.0f}")
 
-         else:
-             st.caption("このキャラはまだダメージ比較βに対応していません。")
+                else:
+                    st.caption("このキャラはまだダメージ比較βに対応していません。")
 
          st.markdown("##### 聖遺物セット")
 
