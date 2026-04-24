@@ -637,4 +637,3 @@ character_builds = {
         }
     }
 }
-}
