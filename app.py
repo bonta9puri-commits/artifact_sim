@@ -946,7 +946,7 @@ elif mode == "期間シミュ":
             def show_artifact_set(title, record):
                  st.markdown(f"#### {title}：合計スコア {record['score']}")
 
-            selected_artifacts = record.get("selected_artifacts")
+                 selected_artifacts = record.get("selected_artifacts")
 
             if not selected_artifacts:
                 st.info("表示できる聖遺物セットがありません。")
