@@ -136,7 +136,8 @@ character_builds = {
                 }
             }
         }
-    },
+    }
+},
 
     "クロリンデ": {
         "element": "雷",
