@@ -939,8 +939,8 @@ elif mode == "期間シミュ":
             metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
             metric_col1.metric("平均", f"{result['average']}")
             metric_col2.metric("中央値", f"{result['median']}")
-            metric_col3.metric("下位10%", f"{result['lower10']}")
-            metric_col4.metric("上位10%", f"{result['upper10']}")
+            metric_col3.metric("下位10%", f"{result.get('lower10', result.get('worst10'))}")
+            metric_col4.metric("上位10%", f"{result.get('upper10', result.get('best10'))}")
 
             def show_artifact_set(title, record):
                 st.markdown(f"#### {title}：合計スコア {record['score']}")
