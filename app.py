@@ -599,6 +599,18 @@ elif mode == "かんたん診断":
                     crit = damage["crit"]
 
                     st.markdown("#### 聖遺物比較β（試験表示）")
+
+                    talent_name = preview.get("talent_name", "攻撃")
+                    reaction_name = preview.get("reaction", "なし")
+                    enemy_name = preview["default_enemy"].get("name", "敵")
+                    enemy_level = preview["default_enemy"].get("level", "-")
+                    enemy_res = preview["default_enemy"].get("resistance", 0)
+
+                    st.caption(
+                       f"{talent_name} / {enemy_name} Lv{enemy_level} / 耐性{enemy_res}% / 反応{reaction_name}"
+                     )
+
+
                     st.write(f"仮想敵: {preview['default_enemy'].get('name', '敵')} Lv{preview['default_enemy'].get('level', '-')}")
 
                     stat_type = preview["stat_type"]

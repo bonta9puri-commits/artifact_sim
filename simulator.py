@@ -1303,11 +1303,27 @@ def calc_damage_preview_from_selected(
         enemy_level=enemy_level,
         enemy_resistance=enemy_resistance,
         talent_multiplier=talent_multiplier
+        talent_name = preview.get("talent_name", "攻撃")
+        reaction = preview.get("reaction", "なし")
     )
 
     return {
-        "preview_base": preview_base,
-        "artifact_stats": artifact_stats,
-        "total_stats": total_stats,
-        "damage_result": damage_result
+        "character": character_name,
+        "build_name": build_name,
+        "stat_type": stat_type,
+        "base_stat": round(base_stat, 2),
+        "base_hp": round(base_hp, 2),
+        "base_atk": round(base_atk, 2),
+        "base_def": round(base_def, 2),
+        "weapon_base_stat": round(weapon_base_stat, 2),
+        "base_stats": base_stats,
+        "base_crit_rate": round(total_base_crit_rate, 2),
+        "base_crit_damage": round(total_base_crit_damage, 2),
+        "talent_name": talent_name,
+        "talent_multiplier": talent_multiplier,
+        "reaction": reaction,
+        "crit_rate_cap": round(crit_rate_cap, 2),
+        "elemental_bonus_type": elemental_bonus_type,
+        "elemental_bonus": round(elemental_bonus, 2),
+        "default_enemy": default_enemy
     }

@@ -131,6 +131,10 @@ character_builds = {
 
                 "elemental_bonus_type": "水ダメージ",
 
+                "talent_name": "元素スキル",
+                "talent_multiplier": 14.0,
+                "reaction": "なし",     
+         
                 "default_enemy": {
                     "name": "ヒルチャール",
                     "level": 100,
