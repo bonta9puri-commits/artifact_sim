@@ -950,7 +950,7 @@ elif mode == "期間シミュ":
 
             if not selected_artifacts:
                 st.info("表示できる聖遺物セットがありません。")
-            return
+                return
 
                 # ダメージ比較β
                 if "damage_preview" in build_data:
