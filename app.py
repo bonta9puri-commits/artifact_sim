@@ -494,7 +494,7 @@ elif mode == "かんたん診断":
                     strongbox_target_set=strongbox_target_set
                 )
 
-             preview_bundle = None
+            preview_bundle = None
             preview_result = None
 
             if "damage_preview" in build_data:
