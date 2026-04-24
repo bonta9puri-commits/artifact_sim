@@ -1004,13 +1004,13 @@ elif mode == "期間シミュ":
 
              with st.expander("使用条件とスコア式を見る"):
                         f"{part}｜{artifact.get('セット', '-')}｜{artifact.get('メイン', '-')}｜スコア {artifact.get('スコア', 0)}"
-                    ):
+             ):
                         st.write("**初期サブ**")
                         st.write(artifact.get("初期サブ", {}))
 
                         st.write("**最終サブ**")
                         st.write(artifact.get("サブ", {}))
-                    with st.expander("使用条件とスコア式を見る"):
+             with st.expander("使用条件とスコア式を見る"):
                        st.write(f"**評価タイプ**: {score_mode}")
                        st.write(f"**厳選日数**: {days}")
                        st.write(f"**1日の樹脂消費量**: {resin_per_day}")
