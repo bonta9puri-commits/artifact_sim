@@ -958,35 +958,6 @@ elif mode == "期間シミュ":
         else:
             st.info("左で条件を設定してシミュを開始してください。")
 
-st.write("### ダメージ比較β（試験表示）")
-
-preview = preview_result["preview_base"]
-damage = preview_result["damage_result"]
-crit = damage["crit"]
-
-st.write(f"参照ステータス種別: {preview['stat_type']}")
-st.write(f"基礎参照ステータス: {preview['base_stat']}")
-st.write(f"元素ダメージ種別: {preview['elemental_bonus_type']}")
-st.write(f"仮想敵: {preview['default_enemy'].get('name', '敵')} Lv{preview['default_enemy'].get('level', '-')}")
-st.write(f"敵耐性: {preview['default_enemy'].get('resistance', 0)}%")
-
-st.write(f"最終参照ステ: {damage['final_stat']}")
-st.write(f"非会心指数: {damage['non_crit_index']}")
-st.write(f"会心指数: {damage['crit_index']}")
-st.write(f"期待値指数: {damage['expected_index']}")
-st.write(f"非会心指数（補正後）: {damage['final_non_crit_index']}")
-st.write(f"会心指数（補正後）: {damage['final_crit_index']}")
-st.write(f"期待値指数（補正後）: {damage['final_expected_index']}")
-
-st.write(f"合計会心率: {crit['total_cr']}%")
-st.write(f"実効会心率: {crit['effective_cr']}%")
-st.write(f"あふれ会心率: {crit['overflow_cr']}%")
-st.write(f"補正前会心ダメ: {crit['total_cd']}%")
-st.write(f"補正後会心ダメ: {crit['adjusted_cd']}%")
-
-
-st.write(f"耐性倍率: {damage['resistance_multiplier']}")
-st.write(f"防御倍率: {damage['defense_multiplier']}")
 
 with st.sidebar:
     st.markdown("---")
