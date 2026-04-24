@@ -1,6 +1,3 @@
-import streamlit as st
-import matplotlib.pyplot as plt
-import urllib.parse
 from simulator import (
     generate_artifact,
     run_multiple_simulations,
@@ -12,7 +9,9 @@ from simulator import (
     run_fixed_period_build_simulation,
     run_custom_build_preview,
     run_fixed_period_build_preview,
-    calc_damage_preview_from_selected
+    calc_damage_preview_from_selected,
+    sum_selected_stats,
+    calc_damage_index
 )
 
 st.set_page_config(
@@ -185,6 +184,56 @@ def save_damage_compare_record(
 
     st.session_state["damage_compare_records"].append(record)
 
+def calc_manual_damage_preview_from_selected(
+    selected_artifacts,
+    stat_type,
+    base_stat,
+    talent_multiplier,
+    dmg_bonus=0.0,
+    base_crit_rate=5.0,
+    base_crit_damage=50.0,
+    enemy_level=100,
+    enemy_resistance=10.0,
+    overflow_mode="to_cd",
+    overflow_ratio=1.0
+):
+    artifact_stats = sum_selected_stats(
+        selected_artifacts,
+        include_mainstats=True
+    )
+
+    damage_result = calc_damage_index(
+        substats=artifact_stats,
+        base_stat=base_stat,
+        stat_type=stat_type,
+        base_crit_rate=base_crit_rate,
+        base_crit_damage=base_crit_damage,
+        dmg_bonus=dmg_bonus,
+        crit_rate_cap=100.0,
+        overflow_mode=overflow_mode,
+        overflow_ratio=overflow_ratio,
+        character_level=90,
+        enemy_level=enemy_level,
+        enemy_resistance=enemy_resistance,
+        defense_reduction=0.0,
+        defense_ignore=0.0,
+        talent_multiplier=talent_multiplier
+    )
+
+    return {
+        "preview_base": {
+            "stat_type": stat_type,
+            "base_stat": base_stat,
+            "talent_multiplier": talent_multiplier,
+            "dmg_bonus": dmg_bonus,
+            "enemy_level": enemy_level,
+            "enemy_resistance": enemy_resistance,
+            "mode": "manual"
+        },
+        "artifact_stats": artifact_stats,
+        "total_stats": artifact_stats,
+        "damage_result": damage_result
+    }
 
 def build_light_result_post_text(
     character_name,
@@ -935,6 +984,99 @@ elif mode == "期間シミュ":
                     "main": main_choice,
                     "score": score_value
                 }
+
+        with st.expander("ダメージ計算設定β"):
+            st.caption("聖遺物差を見るための簡易ダメージ指数です。実ゲーム内ダメージと完全一致するものではありません。")
+
+            damage_calc_mode = st.radio(
+                "ダメージ計算方式",
+                ["手動設定を使う", "キャラプリセットを使う"],
+                horizontal=True,
+                key="period_damage_calc_mode"
+            )
+
+            manual_stat_type = st.selectbox(
+                "参照ステータス",
+                ["攻撃", "HP", "防御"],
+                key="period_manual_stat_type"
+            )
+
+            default_base_stat_map = {
+                "攻撃": 1000.0,
+                "HP": 15000.0,
+                "防御": 800.0
+            }
+
+            default_multiplier_map = {
+                "攻撃": 250.0,
+                "HP": 14.0,
+                "防御": 350.0
+            }
+
+            manual_base_stat = st.number_input(
+                "聖遺物抜きの基準ステータス",
+                min_value=0.0,
+                max_value=200000.0,
+                value=default_base_stat_map[manual_stat_type],
+                step=10.0,
+                key="period_manual_base_stat"
+            )
+
+            manual_talent_multiplier = st.number_input(
+                "天賦倍率（%）",
+                min_value=1.0,
+                max_value=10000.0,
+                value=default_multiplier_map[manual_stat_type],
+                step=1.0,
+                key="period_manual_talent_multiplier"
+            )
+
+            manual_base_crit_rate = st.number_input(
+                "基礎会心率（%）",
+                min_value=0.0,
+                max_value=300.0,
+                value=5.0,
+                step=1.0,
+                key="period_manual_base_crit_rate"
+            )
+
+            manual_base_crit_damage = st.number_input(
+                "基礎会心ダメージ（%）",
+                min_value=0.0,
+                max_value=500.0,
+                value=50.0,
+                step=1.0,
+                key="period_manual_base_crit_damage"
+            )
+
+            manual_dmg_bonus = st.number_input(
+                "ダメージバフ（%）",
+                min_value=0.0,
+                max_value=1000.0,
+                value=0.0,
+                step=1.0,
+                key="period_manual_dmg_bonus"
+            )
+
+            manual_enemy_resistance = st.number_input(
+                "敵耐性（%）",
+                min_value=-100.0,
+                max_value=300.0,
+                value=10.0,
+                step=1.0,
+                key="period_manual_enemy_resistance"
+            )
+
+            manual_enemy_level = st.number_input(
+                "敵レベル",
+                min_value=1,
+                max_value=200,
+                value=100,
+                step=1,
+                key="period_manual_enemy_level"
+            )
+
+            st.caption("基準ステータスは、キャラ・武器・バフなどをまとめた値として扱います。聖遺物のメイン/サブ分はシミュ結果から加算します。")
         run_period = st.button("期間シミュ開始", use_container_width=True, type="primary")
 
         st.caption("1周あたり樹脂20で換算します。")
@@ -953,8 +1095,6 @@ elif mode == "期間シミュ":
                 goblet_choice,
                 circlet_choice
             )
-
-            current_gear = build_current_gear_from_inputs(current_gear_inputs)
 
             with st.spinner("計算中..."):
                 result = run_fixed_period_build_simulation(
@@ -1004,13 +1144,29 @@ elif mode == "期間シミュ":
                     st.info("表示できる聖遺物セットがありません。")
                     return
 
-                if "damage_preview" in build_data:
+                preview_result = None
+
+                if damage_calc_mode == "手動設定を使う":
+                    preview_result = calc_manual_damage_preview_from_selected(
+                        selected_artifacts=selected_artifacts,
+                        stat_type=manual_stat_type,
+                        base_stat=manual_base_stat,
+                        talent_multiplier=manual_talent_multiplier,
+                        dmg_bonus=manual_dmg_bonus,
+                        base_crit_rate=manual_base_crit_rate,
+                        base_crit_damage=manual_base_crit_damage,
+                        enemy_level=manual_enemy_level,
+                        enemy_resistance=manual_enemy_resistance
+                    )
+
+                elif "damage_preview" in build_data:
                     preview_result = calc_damage_preview_from_selected(
                         character_name=character_name,
                         build_name=build_name,
                         selected_artifacts=selected_artifacts
                     )
 
+                if preview_result is not None:
                     damage = preview_result["damage_result"]
                     crit = damage["crit"]
 
