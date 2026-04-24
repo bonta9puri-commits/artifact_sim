@@ -944,53 +944,73 @@ elif mode == "期間シミュ":
             metric_col4.metric("上位10%", f"{result.get('upper10', result.get('best10'))}")
 
             def show_artifact_set(title, record):
-                st.markdown(f"#### {title}：合計スコア {record['score']}")
+                 st.markdown(f"#### {title}：合計スコア {record['score']}")
 
-                selected_artifacts = record.get("selected_artifacts")
+            selected_artifacts = record.get("selected_artifacts")
 
-                if not selected_artifacts:
-                    st.info("表示できる聖遺物セットがありません。")
-                    return
+            if not selected_artifacts:
+                st.info("表示できる聖遺物セットがありません。")
+                return
 
-                for part in parts:
-                    artifact = selected_artifacts.get(part)
+             # ダメージ比較β
+             if "damage_preview" in build_data:
+                 preview_result = calc_damage_preview_from_selected(
+                    character_name=character_name,
+                    build_name=build_name,
+                    selected_artifacts=selected_artifacts
+             )
 
-                    if artifact is None:
-                        st.write(f"**{part}**：なし")
-                        continue
+                  damage = preview_result["damage_result"]
+                  crit = damage["crit"]
 
-                    with st.expander(
-                        f"{part}｜{artifact.get('セット', '-')}｜{artifact.get('メイン', '-')}｜スコア {artifact.get('スコア', 0)}"
-                    ):
-                        st.write("**初期サブ**")
-                        st.write(artifact.get("初期サブ", {}))
+             st.markdown("##### ダメージ比較β")
 
-                        st.write("**最終サブ**")
-                        st.write(artifact.get("サブ", {}))
+             dmg_col1, dmg_col2, dmg_col3, dmg_col4 = st.columns(4)
 
-            with st.expander("代表的な聖遺物セットを見る"):
-                sample_artifacts = result.get("sample_artifacts", {})
+             with dmg_col1:
+                 st.metric("非会心", f"{damage['final_non_crit_index']:.0f}")
 
-                if not sample_artifacts:
-                    st.info("代表聖遺物セットがありません。")
-                else:
-                    tab_lower, tab_avg, tab_median, tab_upper = st.tabs(
-                        ["下位10%", "平均付近", "中央値", "上位10%"]
-                    )
+             with dmg_col2:
+                 st.metric("会心", f"{damage['final_crit_index']:.0f}")
 
-                    with tab_lower:
-                        show_artifact_set("下位10%", sample_artifacts["下位10%"])
+             with dmg_col3:
+                 st.metric("期待値", f"{damage['final_expected_index']:.0f}")
 
-                    with tab_avg:
-                        show_artifact_set("平均付近", sample_artifacts["平均付近"])
+             with dmg_col4:
+                 st.metric("会心率", f"{crit['effective_cr']:.1f}%")
 
-                    with tab_median:
-                        show_artifact_set("中央値", sample_artifacts["中央値"])
+             crit_col1, crit_col2, crit_col3 = st.columns(3)
 
-                    with tab_upper:
-                        show_artifact_set("上位10%", sample_artifacts["上位10%"])
+             with crit_col1:
+                 st.metric("会心ダメ", f"{crit['total_cd']:.1f}%")
 
-            with st.expander("使用条件とスコア式を見る"):
+             with crit_col2:
+                st.metric("溢れ会心率", f"{crit['overflow_cr']:.1f}%")
+     
+             with crit_col3:
+                 st.metric("最終参照ステ", f"{damage['final_stat']:.0f}")
+
+         else:
+             st.caption("このキャラはまだダメージ比較βに対応していません。")
+
+         st.markdown("##### 聖遺物セット")
+
+         for part in parts:
+             artifact = selected_artifacts.get(part)
+
+             if artifact is None:
+                 st.write(f"**{part}**：なし")
+                 continue
+
+             with st.expander(
+                 f"{part}｜{artifact.get('セット', '-')}｜{artifact.get('メイン', '-')}｜スコア {artifact.get('スコア', 0)}"
+             ):
+                 st.write("**初期サブ**")
+                 st.write(artifact.get("初期サブ", {}))
+
+                 st.write("**最終サブ**")
+                 st.write(artifact.get("サブ", {}))
+             with st.expander("使用条件とスコア式を見る"):
                 st.write(f"**評価タイプ**: {score_mode}")
                 st.write(f"**厳選日数**: {days}")
                 st.write(f"**1日の樹脂消費量**: {resin_per_day}")
