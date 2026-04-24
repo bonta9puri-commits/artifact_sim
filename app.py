@@ -494,24 +494,25 @@ elif mode == "かんたん診断":
                     strongbox_target_set=strongbox_target_set
                 )
 
-            preview_bundle = None
+             preview_bundle = None
             preview_result = None
 
-        if "damage_preview" in build_data:
-              preview_bundle = run_custom_build_preview(
-              character_name=character_name,
-              build_name=build_name,
-              selected_mainstats=selected_mainstats,
-              score_mode=score_mode,
-              target_score=target_score,
-              elixir_interval=elixir_interval,
-              reroll_interval=reroll_interval,
-              reroll_times=reroll_times,
-              max_attempts=max_attempts,
-              strongbox_enabled=strongbox_enabled,
-              strongbox_target_set=strongbox_target_set
-            )
-              preview_result = preview_bundle["preview_result"] if preview_bundle else None
+            if "damage_preview" in build_data:
+                preview_bundle = run_custom_build_preview(
+                    character_name=character_name,
+                    build_name=build_name,
+                    selected_mainstats=selected_mainstats,
+                    score_mode=score_mode,
+                    target_score=target_score,
+                    elixir_interval=elixir_interval,
+                    reroll_interval=reroll_interval,
+                    reroll_times=reroll_times,
+                    max_attempts=max_attempts,
+                    strongbox_enabled=strongbox_enabled,
+                    strongbox_target_set=strongbox_target_set
+                )
+
+                preview_result = preview_bundle["preview_result"] if preview_bundle else None
 
             st.markdown(
                 f"#### {result['character']}｜{result['label']}（目標スコア {result['target_score']}）"
