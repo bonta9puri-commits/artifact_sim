@@ -600,36 +600,46 @@ elif mode == "かんたん診断":
 
                     st.markdown("#### 聖遺物比較β（試験表示）")
                     st.write(f"仮想敵: {preview['default_enemy'].get('name', '敵')} Lv{preview['default_enemy'].get('level', '-')}")
+
                     stat_type = preview["stat_type"]
 
-                    if stat_type == "HP":
-                        st.write(f"最終HP: {damage['final_stat']:.0f}")
-                    elif stat_type == "攻撃":
-                        st.write(f"最終攻撃力: {damage['final_stat']:.0f}")
-                    elif stat_type == "防御":
-                        st.write(f"最終防御力: {damage['final_stat']:.0f}")
-                    else:
-                        st.write(f"最終参照ステ: {damage['final_stat']:.0f}")
-                        st.write(f"非会心指数（補正後）: {damage['final_non_crit_index']}")
-                        st.write(f"会心指数（補正後）: {damage['final_crit_index']}")
-                        st.write(f"期待値指数（補正後）: {damage['final_expected_index']}")
+                    top1, top2, top3 = st.columns(3)
+                    with top1:
+                        if stat_type == "HP":
+                            st.metric("最終HP", f"{damage['final_stat']:.0f}")
+                        elif stat_type == "攻撃":
+                            st.metric("最終攻撃力", f"{damage['final_stat']:.0f}")
+                        elif stat_type == "防御":
+                            st.metric("最終防御力", f"{damage['final_stat']:.0f}")
+                        else:
+                            st.metric("最終参照ステ", f"{damage['final_stat']:.0f}")
 
-                    st.markdown("##### ステータス")
-                    stat_col1, stat_col2, stat_col3 = st.columns(3)
+                    with top2:
+                        st.metric("非会心ダメージ", f"{damage['final_non_crit_index']:.0f}")
+                    with top3:
+                        st.metric("期待値ダメージ", f"{damage['final_expected_index']:.0f}")
 
-                    with stat_col1:
-                        st.write(f"会心率: {crit['total_cr']}%")
-                        st.write(f"実効会心率: {crit['effective_cr']}%")
-                        st.write(f"あふれ会心率: {crit['overflow_cr']}%")
+                    mid1, mid2, mid3 = st.columns(3)
+                    with mid1:
+                        st.metric("会心率", f"{crit['total_cr']:.1f}%")
+                        st.metric("実効会心率", f"{crit['effective_cr']:.1f}%")
+                    with mid2:
+                        st.metric("会心ダメ", f"{crit['total_cd']:.1f}%")
+                        st.metric("補正後会心ダメ", f"{crit['adjusted_cd']:.1f}%")
+                    with mid3:
+                        st.metric("あふれ会心率", f"{crit['overflow_cr']:.1f}%")
+                        elemental_bonus_type = preview.get("elemental_bonus_type")
+                        if elemental_bonus_type:
+                            st.metric(elemental_bonus_type, f"{total_stats.get(elemental_bonus_type, 0):.1f}%")
+                        else:
+                            st.metric("元素ダメバフ", "0.0%")
 
-                    with stat_col2:
-                        st.write(f"会心ダメ: {crit['total_cd']}%")
-                        st.write(f"補正後会心ダメ: {crit['adjusted_cd']}%")
-                        st.write(f"元素ダメバフ: {preview.get('elemental_bonus_type', 'なし')}")
-
-                    with stat_col3:
+                    extra1, extra2, extra3 = st.columns(3)
+                    with extra1:
                         st.write(f"HP%: {total_stats.get('HP%', 0):.1f}")
+                    with extra2:
                         st.write(f"攻撃%: {total_stats.get('攻撃%', 0):.1f}")
+                    with extra3:
                         st.write(f"防御%: {total_stats.get('防御%', 0):.1f}")
 
                     with st.expander("合計ステータスを見る"):
@@ -637,6 +647,7 @@ elif mode == "かんたん診断":
 
                     with st.expander("聖遺物サブ合計を見る"):
                         st.write(artifact_stats)
+
             post_text = build_light_result_post_text(
                 character_name=character_name,
                 build_name=build_name,
