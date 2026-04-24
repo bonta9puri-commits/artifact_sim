@@ -971,6 +971,11 @@ elif mode == "期間シミュ":
                     strongbox_target_set=strongbox_target_set
                 )
 
+            st.session_state["period_result"] = result
+
+        if "period_result" in st.session_state:
+            result = st.session_state["period_result"]
+
             st.markdown(
                 f"#### {result['character']}｜{result['label']}（{result['days']}日）"
             )
