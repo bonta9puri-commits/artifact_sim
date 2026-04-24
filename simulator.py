@@ -439,6 +439,67 @@ def run_custom_build_preview(
         "selected_artifacts": best_selected,
         "preview_result": preview_result
     }
+
+def run_fixed_period_build_preview(
+    character_name,
+    build_name,
+    selected_mainstats,
+    score_mode,
+    days,
+    resin_per_day,
+    elixir_interval=250,
+    reroll_interval=1000,
+    reroll_times=10,
+    current_gear=None,
+    strongbox_enabled=False,
+    strongbox_target_set="セット1",
+    overflow_mode="to_cd",
+    overflow_ratio=1.0
+):
+    character_data = character_builds[character_name]
+    build_data = character_data["builds"][build_name]
+
+    custom_build = {
+        "mainstats": selected_mainstats,
+        "elixir_fixed_substats": build_data["elixir_fixed_substats"],
+        "score_weights": build_data["score_weight_options"][score_mode]
+    }
+
+    initial_selected = build_selected_from_current_gear(current_gear)
+    total_attempts = int(days * resin_per_day / 20)
+
+    best_total, best_selected = simulate_score_after_fixed_attempts_for_custom_build(
+        build=custom_build,
+        total_attempts=total_attempts,
+        elixir_interval=elixir_interval,
+        reroll_interval=reroll_interval,
+        reroll_times=reroll_times,
+        initial_selected=initial_selected,
+        strongbox_enabled=strongbox_enabled,
+        strongbox_target_set=strongbox_target_set
+    )
+
+    if not best_selected:
+        return None
+
+    preview_result = calc_damage_preview_from_selected(
+        character_name=character_name,
+        build_name=build_name,
+        selected_artifacts=best_selected,
+        overflow_mode=overflow_mode,
+        overflow_ratio=overflow_ratio
+    )
+
+    return {
+        "character": character_name,
+        "label": build_name,
+        "days": days,
+        "total_attempts": total_attempts,
+        "best_total": best_total,
+        "selected_artifacts": best_selected,
+        "preview_result": preview_result
+    }
+
 # =========================
 # 統計まとめ
 # =========================
