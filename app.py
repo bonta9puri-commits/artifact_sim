@@ -201,6 +201,12 @@ def calc_manual_damage_preview_from_selected(
     base_crit_damage=50.0,
     enemy_level=100,
     enemy_resistance=10.0,
+    set_atk_percent=0.0,
+    set_hp_percent=0.0,
+    set_def_percent=0.0,
+    set_crit_rate=0.0,
+    set_crit_damage=0.0,
+    set_dmg_bonus=0.0,
     overflow_mode="to_cd",
     overflow_ratio=1.0
 ):
@@ -209,13 +215,19 @@ def calc_manual_damage_preview_from_selected(
         include_mainstats=True
     )
 
+    artifact_stats["攻撃%"] = artifact_stats.get("攻撃%", 0) + set_atk_percent
+    artifact_stats["HP%"] = artifact_stats.get("HP%", 0) + set_hp_percent
+    artifact_stats["防御%"] = artifact_stats.get("防御%", 0) + set_def_percent
+    artifact_stats["会心率"] = artifact_stats.get("会心率", 0) + set_crit_rate
+    artifact_stats["会心ダメージ"] = artifact_stats.get("会心ダメージ", 0) + set_crit_damage
+
     damage_result = calc_damage_index(
         substats=artifact_stats,
         base_stat=base_stat,
         stat_type=stat_type,
         base_crit_rate=base_crit_rate,
         base_crit_damage=base_crit_damage,
-        dmg_bonus=dmg_bonus,
+        dmg_bonus=dmg_bonus + set_dmg_bonus,
         crit_rate_cap=100.0,
         overflow_mode=overflow_mode,
         overflow_ratio=overflow_ratio,
@@ -1083,7 +1095,64 @@ elif mode == "期間シミュ":
                 key="period_manual_enemy_level"
             )
 
-            st.caption("基準ステータスは、キャラ・武器・バフなどをまとめた値として扱います。聖遺物のメイン/サブ分はシミュ結果から加算します。")
+            st.markdown("##### 聖遺物セット効果β")
+            st.caption("セット効果やキャラ固有効果を、簡易的な補正として加算できます。")
+
+            manual_set_atk_percent = st.number_input(
+                "セット効果：攻撃%補正",
+                min_value=0.0,
+                max_value=200.0,
+                value=0.0,
+                step=1.0,
+                key="period_manual_set_atk_percent"
+            )
+
+            manual_set_hp_percent = st.number_input(
+                "セット効果：HP%補正",
+                min_value=0.0,
+                max_value=200.0,
+                value=0.0,
+                step=1.0,
+                key="period_manual_set_hp_percent"
+            )
+
+            manual_set_def_percent = st.number_input(
+                "セット効果：防御%補正",
+                min_value=0.0,
+                max_value=200.0,
+                value=0.0,
+                step=1.0,
+                key="period_manual_set_def_percent"
+            )
+
+            manual_set_crit_rate = st.number_input(
+                "セット効果：会心率補正",
+                min_value=0.0,
+                max_value=100.0,
+                value=0.0,
+                step=1.0,
+                key="period_manual_set_crit_rate"
+            )
+
+            manual_set_crit_damage = st.number_input(
+                "セット効果：会心ダメ補正",
+                min_value=0.0,
+                max_value=200.0,
+                value=0.0,
+                step=1.0,
+                key="period_manual_set_crit_damage"
+            )
+
+            manual_set_dmg_bonus = st.number_input(
+                "セット効果：ダメージバフ",
+                min_value=0.0,
+                max_value=300.0,
+                value=0.0,
+                step=1.0,
+                key="period_manual_set_dmg_bonus"
+            )
+
+            st.caption("基準ステータスは、キャラ・武器・バフなどをまとめた値として扱います。聖遺物のメイン/サブ分はシミュ結果から加算します。")            st.caption("基準ステータスは、キャラ・武器・バフなどをまとめた値として扱います。聖遺物のメイン/サブ分はシミュ結果から加算します。")
         run_period = st.button("期間シミュ開始", use_container_width=True, type="primary")
 
         st.caption("1周あたり樹脂20で換算します。")
@@ -1131,6 +1200,13 @@ elif mode == "期間シミュ":
                 "manual_dmg_bonus": manual_dmg_bonus,
                 "manual_enemy_resistance": manual_enemy_resistance,
                 "manual_enemy_level": manual_enemy_level,
+
+                "manual_set_atk_percent": manual_set_atk_percent,
+                "manual_set_hp_percent": manual_set_hp_percent,
+                "manual_set_def_percent": manual_set_def_percent,
+                "manual_set_crit_rate": manual_set_crit_rate,
+                "manual_set_crit_damage": manual_set_crit_damage,
+                "manual_set_dmg_bonus": manual_set_dmg_bonus,
             }
 
         if "period_result" in st.session_state:
@@ -1147,6 +1223,12 @@ elif mode == "期間シミュ":
             saved_manual_dmg_bonus = period_damage_settings.get("manual_dmg_bonus", manual_dmg_bonus)
             saved_manual_enemy_resistance = period_damage_settings.get("manual_enemy_resistance", manual_enemy_resistance)
             saved_manual_enemy_level = period_damage_settings.get("manual_enemy_level", manual_enemy_level)
+            saved_manual_set_atk_percent = period_damage_settings.get("manual_set_atk_percent", manual_set_atk_percent)
+            saved_manual_set_hp_percent = period_damage_settings.get("manual_set_hp_percent", manual_set_hp_percent)
+            saved_manual_set_def_percent = period_damage_settings.get("manual_set_def_percent", manual_set_def_percent)
+            saved_manual_set_crit_rate = period_damage_settings.get("manual_set_crit_rate", manual_set_crit_rate)
+            saved_manual_set_crit_damage = period_damage_settings.get("manual_set_crit_damage", manual_set_crit_damage)
+            saved_manual_set_dmg_bonus = period_damage_settings.get("manual_set_dmg_bonus", manual_set_dmg_bonus)
 
             st.markdown(
                 f"#### {result['character']}｜{result['label']}（{result['days']}日）"
@@ -1186,8 +1268,14 @@ elif mode == "期間シミュ":
                         base_crit_rate=saved_manual_base_crit_rate,
                         base_crit_damage=saved_manual_base_crit_damage,
                         enemy_level=saved_manual_enemy_level,
-                        enemy_resistance=saved_manual_enemy_resistance
-                    )
+                        enemy_resistance=saved_manual_enemy_resistance,
+                        set_atk_percent=saved_manual_set_atk_percent,
+                        set_hp_percent=saved_manual_set_hp_percent,
+                        set_def_percent=saved_manual_set_def_percent,
+                        set_crit_rate=saved_manual_set_crit_rate,
+                        set_crit_damage=saved_manual_set_crit_damage,
+                        set_dmg_bonus=saved_manual_set_dmg_bonus
+                )
 
                 elif saved_damage_calc_mode == "キャラプリセットを使う" and "damage_preview" in build_data:
                     preview_result = calc_damage_preview_from_selected(
