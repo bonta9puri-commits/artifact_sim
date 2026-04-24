@@ -958,10 +958,9 @@ elif mode == "期間シミュ":
                     character_name=character_name,
                     build_name=build_name,
                     selected_artifacts=selected_artifacts
-             )
-
                     damage = preview_result["damage_result"]
                     crit = damage["crit"]
+             )
 
              st.markdown("##### ダメージ比較β")
 
@@ -1086,6 +1085,7 @@ elif mode == "期間シミュ":
 
         else:
             st.info("左で条件を設定してシミュを開始してください。")
+
 with st.sidebar:
     st.markdown("---")
     st.subheader("📺 公式YouTube")
