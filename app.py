@@ -1,3 +1,6 @@
+import streamlit as st
+import matplotlib.pyplot as plt
+import urllib.parse
 from simulator import (
     generate_artifact,
     run_multiple_simulations,
@@ -1170,7 +1173,6 @@ elif mode == "期間シミュ":
                     damage = preview_result["damage_result"]
                     crit = damage["crit"]
 
-
                     save_title = f"{character_name}｜{build_name}｜{title}｜{days}日"
 
                     if st.button(
@@ -1191,6 +1193,20 @@ elif mode == "期間シミュ":
 
                     st.markdown("##### ダメージ比較β")
 
+                    preview_base = preview_result.get("preview_base", {})
+
+                    if preview_base.get("mode") == "manual":
+                        st.caption(
+                            f"手動設定 / 参照{preview_base.get('stat_type')} / "
+                            f"基準ステ{preview_base.get('base_stat')} / "
+                            f"倍率{preview_base.get('talent_multiplier')}% / "
+                            f"ダメバフ{preview_base.get('dmg_bonus')}% / "
+                            f"敵Lv{preview_base.get('enemy_level')} / "
+                            f"耐性{preview_base.get('enemy_resistance')}%"
+                        )
+                    else:
+                        st.caption("キャラプリセット設定")
+
                     dmg_col1, dmg_col2, dmg_col3, dmg_col4 = st.columns(4)
 
                     with dmg_col1:
@@ -1205,8 +1221,19 @@ elif mode == "期間シミュ":
                     with dmg_col4:
                         st.metric("会心率", f"{crit['effective_cr']:.1f}%")
 
+                    crit_col1, crit_col2, crit_col3 = st.columns(3)
+
+                    with crit_col1:
+                        st.metric("会心ダメ", f"{crit['total_cd']:.1f}%")
+
+                    with crit_col2:
+                        st.metric("溢れ会心率", f"{crit['overflow_cr']:.1f}%")
+
+                    with crit_col3:
+                        st.metric("最終参照ステ", f"{damage['final_stat']:.0f}")
+
                 else:
-                    st.caption("このキャラはまだダメージ比較βに対応していません。")
+                    st.caption("この条件ではダメージ比較βを表示できません。")
 
                 st.markdown("##### 聖遺物セット")
 
