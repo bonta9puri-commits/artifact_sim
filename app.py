@@ -944,6 +944,8 @@ elif mode == "期間シミュ":
     with right_col:
         st.markdown("### 結果")
 
+        current_gear = build_current_gear_from_inputs(current_gear_inputs)
+
         if run_period:
             selected_mainstats = build_selected_mainstats(
                 build_data,
