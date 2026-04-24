@@ -1281,22 +1281,20 @@ def calc_damage_preview_from_selected(
         artifact_stats
     )
 
-    dmg_bonus = preview_base["elemental_bonus"]
     elemental_bonus_type = preview_base.get("elemental_bonus_type")
-    if elemental_bonus_type:
-        dmg_bonus = total_stats.get(elemental_bonus_type, 0.0) if elemental_bonus_type else 0.0
+    dmg_bonus = total_stats.get(elemental_bonus_type, 0.0) if elemental_bonus_type else 0.0
 
     enemy = preview_base.get("default_enemy", {})
     enemy_level = enemy.get("level", 100)
     enemy_resistance = enemy.get("resistance", 10.0)
     talent_multiplier = preview_base.get("talent_multiplier", 100.0)
-    base_crit_rate=preview_base["base_crit_rate"] - total_stats.get("会心率", 0.0),
-    base_crit_damage=preview_base["base_crit_damage"] - total_stats.get("会心ダメージ", 0.0),
+
     damage_result = calc_damage_index(
         substats=total_stats,
         base_stat=preview_base["base_stat"],
         stat_type=preview_base["stat_type"],
-
+        base_crit_rate=5.0,
+        base_crit_damage=50.0,
         dmg_bonus=dmg_bonus,
         crit_rate_cap=preview_base["crit_rate_cap"],
         overflow_mode=overflow_mode,
