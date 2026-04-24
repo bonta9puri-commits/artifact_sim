@@ -948,9 +948,9 @@ elif mode == "期間シミュ":
 
                  selected_artifacts = record.get("selected_artifacts")
 
-            if not selected_artifacts:
-                st.info("表示できる聖遺物セットがありません。")
-                return
+                if not selected_artifacts:
+                    st.info("表示できる聖遺物セットがありません。")
+                    return
 
                 # ダメージ比較β
                 if "damage_preview" in build_data:
