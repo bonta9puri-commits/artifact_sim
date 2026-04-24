@@ -469,6 +469,8 @@ elif mode == "かんたん診断":
         st.markdown("### 結果")
 
         if run_light:
+            preview_result = None
+
             selected_mainstats = build_selected_mainstats(
                 build_data,
                 clock_choice,
@@ -506,7 +508,7 @@ elif mode == "かんたん診断":
                     strongbox_target_set=strongbox_target_set
                 )
 
-            preview_result = preview_bundle["preview_result"] if preview_bundle else None
+                preview_result = preview_bundle["preview_result"] if preview_bundle else None
 
             st.markdown(
                 f"#### {result['character']}｜{result['label']}（目標スコア {result['target_score']}）"
@@ -562,6 +564,14 @@ elif mode == "かんたん診断":
                         day_col2.metric("良い側10%日数", f"{best10_days:.1f} 日")
                         day_col3.metric("沼側10%日数", f"{worst10_days:.1f} 日")
 
+                    if avg_days <= 14:
+                        st.success("比較的現実的です")
+                    elif avg_days <= 30:
+                        st.warning("少し重めです")
+                    else:
+                        st.error("かなり重いです")
+                else:
+                    st.info("1日の樹脂消費量が0のため、日数換算は表示できません。")
 
                 fig, ax = plt.subplots()
                 ax.hist(result["results"], bins=20)
@@ -629,7 +639,6 @@ elif mode == "かんたん診断":
 
         else:
             st.info("左でキャラを選んで診断を開始してください。")
-
 
 elif mode == "期間シミュ":
     st.subheader("期間シミュ")
