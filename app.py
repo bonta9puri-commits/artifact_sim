@@ -611,11 +611,9 @@ elif mode == "かんたん診断":
                      )
 
 
-                    st.write(f"仮想敵: {preview['default_enemy'].get('name', '敵')} Lv{preview['default_enemy'].get('level', '-')}")
-
                     stat_type = preview["stat_type"]
 
-                    top1, top2, top3 = st.columns(3)
+                    top1, top2, top3, top4 = st.columns(4)
                     with top1:
                         if stat_type == "HP":
                             st.metric("最終HP", f"{damage['final_stat']:.0f}")
@@ -625,11 +623,12 @@ elif mode == "かんたん診断":
                             st.metric("最終防御力", f"{damage['final_stat']:.0f}")
                         else:
                             st.metric("最終参照ステ", f"{damage['final_stat']:.0f}")
-
                     with top2:
-                        st.metric("非会心ダメージ", f"{damage['final_non_crit_index']:.0f}")
+                            st.metric("非会心ダメージ", f"{damage['final_non_crit_index']:.0f}")
                     with top3:
-                        st.metric("期待値ダメージ", f"{damage['final_expected_index']:.0f}")
+                            st.metric("会心ダメージ", f"{damage['final_crit_index']:.0f}")
+                    with top4:
+                            st.metric("期待値ダメージ", f"{damage['final_expected_index']:.0f}")
 
                     mid1, mid2, mid3 = st.columns(3)
                     with mid1:
