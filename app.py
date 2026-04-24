@@ -957,9 +957,9 @@ elif mode == "期間シミュ":
                  preview_result = calc_damage_preview_from_selected(
                     character_name=character_name,
                     build_name=build_name,
-                    selected_artifacts=selected_artifacts
-                    damage = preview_result["damage_result"]
-                    crit = damage["crit"]
+                    selected_artifacts=selected_artifacts,
+                    damage = preview_result["damage_result"],
+                    crit = damage["crit"],
              )
 
              st.markdown("##### ダメージ比較β")
