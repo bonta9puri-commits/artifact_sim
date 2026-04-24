@@ -147,6 +147,45 @@ def build_x_intent_url(text: str) -> str:
     return "https://twitter.com/intent/tweet?text=" + urllib.parse.quote(text)
 
 
+def save_damage_compare_record(
+    title,
+    character_name,
+    build_name,
+    score_mode,
+    days,
+    score,
+    selected_artifacts,
+    preview_result
+):
+    damage = preview_result["damage_result"]
+    crit = damage["crit"]
+
+    record = {
+        "title": title,
+        "character_name": character_name,
+        "build_name": build_name,
+        "score_mode": score_mode,
+        "days": days,
+        "score": score,
+
+        # ダメージ系
+        "final_stat": damage["final_stat"],
+        "non_crit": damage["final_non_crit_index"],
+        "crit_damage": damage["final_crit_index"],
+        "expected": damage["final_expected_index"],
+
+        # 会心系
+        "crit_rate": crit["effective_cr"],
+        "crit_damage_stat": crit["total_cd"],
+        "overflow_cr": crit["overflow_cr"],
+
+        # 後から中身も確認できるように保存
+        "selected_artifacts": selected_artifacts,
+    }
+
+    st.session_state["damage_compare_records"].append(record)
+
+
 def build_light_result_post_text(
     character_name,
     build_name,
@@ -1152,38 +1191,6 @@ elif mode == "期間シミュ":
 
         else:
             st.info("左で条件を設定してシミュを開始してください。")
-
-def save_damage_compare_record(
-    title,
-    character_name,
-    build_name,
-    score_mode,
-    days,
-    score,
-    selected_artifacts,
-    preview_result
-):
-    damage = preview_result["damage_result"]
-    crit = damage["crit"]
-
-    record = {
-        "title": title,
-        "character_name": character_name,
-        "build_name": build_name,
-        "score_mode": score_mode,
-        "days": days,
-        "score": score,
-        "final_stat": damage["final_stat"],
-        "non_crit": damage["final_non_crit_index"],
-        "crit_damage": damage["final_crit_index"],
-        "expected": damage["final_expected_index"],
-        "crit_rate": crit["effective_cr"],
-        "crit_damage_stat": crit["total_cd"],
-        "overflow_cr": crit["overflow_cr"],
-        "selected_artifacts": selected_artifacts,
-    }
-
-    st.session_state["damage_compare_records"].append(record)
 
 with st.sidebar:
     st.markdown("---")
