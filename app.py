@@ -593,6 +593,8 @@ elif mode == "かんたん診断":
                     st.info("このキャラはまだダメージ比較βに対応していません。")
                 elif preview_result is not None:
                     preview = preview_result["preview_base"]
+                    total_stats = preview_result["total_stats"]
+                    artifact_stats = preview_result["artifact_stats"]
                     damage = preview_result["damage_result"]
                     crit = damage["crit"]
 
@@ -602,11 +604,30 @@ elif mode == "かんたん診断":
                     st.write(f"非会心指数（補正後）: {damage['final_non_crit_index']}")
                     st.write(f"会心指数（補正後）: {damage['final_crit_index']}")
                     st.write(f"期待値指数（補正後）: {damage['final_expected_index']}")
-                    st.write(f"合計会心率: {crit['total_cr']}%")
-                    st.write(f"実効会心率: {crit['effective_cr']}%")
-                    st.write(f"あふれ会心率: {crit['overflow_cr']}%")
-                    st.write(f"補正後会心ダメ: {crit['adjusted_cd']}%")
 
+                    st.markdown("##### ステータス")
+                    stat_col1, stat_col2, stat_col3 = st.columns(3)
+
+                    with stat_col1:
+                        st.write(f"会心率: {crit['total_cr']}%")
+                        st.write(f"実効会心率: {crit['effective_cr']}%")
+                        st.write(f"あふれ会心率: {crit['overflow_cr']}%")
+
+                    with stat_col2:
+                        st.write(f"会心ダメ: {crit['total_cd']}%")
+                        st.write(f"補正後会心ダメ: {crit['adjusted_cd']}%")
+                        st.write(f"元素ダメバフ: {preview.get('elemental_bonus_type', 'なし')}")
+
+                    with stat_col3:
+                        st.write(f"HP%: {total_stats.get('HP%', 0):.1f}")
+                        st.write(f"攻撃%: {total_stats.get('攻撃%', 0):.1f}")
+                        st.write(f"防御%: {total_stats.get('防御%', 0):.1f}")
+
+                    with st.expander("合計ステータスを見る"):
+                        st.write(total_stats)
+
+                    with st.expander("聖遺物サブ合計を見る"):
+                        st.write(artifact_stats)
             post_text = build_light_result_post_text(
                 character_name=character_name,
                 build_name=build_name,
