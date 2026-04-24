@@ -140,7 +140,11 @@ def build_current_gear_from_inputs(gear_inputs):
             "部位": part,
             "セット": artifact_set,
             "メイン": mainstat,
-            "スコア": score
+            "スコア": score,
+            "初期サブ": {},
+            "サブ": {},
+            "初期OP数": 0,
+            "手動入力": True
         }
 
     return current_gear

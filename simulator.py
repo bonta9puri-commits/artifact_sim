@@ -674,6 +674,8 @@ def find_best_valid_combo(selected, required_set="セット1", min_count=4):
 
     return best_total, best_combo
 def reroll_upgrade_only(artifact, reroll_times=10, score_weights=None):
+    if not artifact.get("サブ"):
+        return artifact
     best = {
         "部位": artifact["部位"],
         "セット": artifact.get("セット"),
