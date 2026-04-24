@@ -1002,24 +1002,24 @@ elif mode == "期間シミュ":
                         st.write(f"**{part}**：なし")
                         continue
 
-             with st.expander("使用条件とスコア式を見る"):
+                    with st.expander(
                         f"{part}｜{artifact.get('セット', '-')}｜{artifact.get('メイン', '-')}｜スコア {artifact.get('スコア', 0)}"
-             ):
+                    ):
                         st.write("**初期サブ**")
                         st.write(artifact.get("初期サブ", {}))
 
                         st.write("**最終サブ**")
                         st.write(artifact.get("サブ", {}))
-             with st.expander("使用条件とスコア式を見る"):
-                       st.write(f"**評価タイプ**: {score_mode}")
-                       st.write(f"**厳選日数**: {days}")
-                       st.write(f"**1日の樹脂消費量**: {resin_per_day}")
-                       st.write(f"**シミュ回数**: {trials}")
-                       st.write(f"**エリクシル使用間隔**: {elixir_interval}")
-                       st.write(f"**振り直し使用間隔**: {reroll_interval}")
-                       st.write(f"**振り直し1回の試行数**: {reroll_times}")
-                       st.write(f"**廻聖を使う**: {'あり' if strongbox_enabled else 'なし'}")
 
+            with st.expander("使用条件とスコア式を見る"):
+                st.write(f"**評価タイプ**: {score_mode}")
+                st.write(f"**厳選日数**: {days}")
+                st.write(f"**1日の樹脂消費量**: {resin_per_day}")
+                st.write(f"**シミュ回数**: {trials}")
+                st.write(f"**エリクシル使用間隔**: {elixir_interval}")
+                st.write(f"**振り直し使用間隔**: {reroll_interval}")
+                st.write(f"**振り直し1回の試行数**: {reroll_times}")
+                st.write(f"**廻聖を使う**: {'あり' if strongbox_enabled else 'なし'}")
                 if strongbox_enabled:
                     st.write(f"**廻聖の対象セット**: {strongbox_target_set}")
 
