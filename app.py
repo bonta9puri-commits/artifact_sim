@@ -11,7 +11,8 @@ from simulator import (
     parts,
     run_fixed_period_build_simulation,
     run_custom_build_preview,
-    run_fixed_period_build_preview
+    run_fixed_period_build_preview,
+    calc_damage_preview_from_selected
 )
 
 st.set_page_config(
