@@ -937,6 +937,7 @@ elif mode == "期間シミュ":
             summary_col1.metric("総試行回数", f"{result['total_attempts']} 回")
             summary_col2.metric("シミュ回数", f"{trials} 回")
 
+            metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
             metric_col1.metric("平均", f"{result['average']}")
             metric_col2.metric("中央値", f"{result['median']}")
             metric_col3.metric("下位10%", f"{result.get('lower10', result.get('worst10'))}")
