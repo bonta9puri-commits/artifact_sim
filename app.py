@@ -953,16 +953,17 @@ elif mode == "期間シミュ":
                 return
 
              # ダメージ比較β
-            if "damage_preview" in build_data:
-                 preview_result = calc_damage_preview_from_selected(
-                    character_name=character_name,
-                    build_name=build_name,
-                    selected_artifacts=selected_artifacts,
-                    damage = preview_result["damage_result"],
-                    crit = damage["crit"],
-             )
+                if "damage_preview" in build_data:
+                    preview_result = calc_damage_preview_from_selected(
+                        character_name=character_name,
+                        build_name=build_name,
+                        selected_artifacts=selected_artifacts
+                    )
 
-             st.markdown("##### ダメージ比較β")
+                    damage = preview_result["damage_result"]
+                    crit = damage["crit"]
+
+                    st.markdown("##### ダメージ比較β")
 
              dmg_col1, dmg_col2, dmg_col3, dmg_col4 = st.columns(4)
 
