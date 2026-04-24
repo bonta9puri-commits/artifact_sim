@@ -1152,7 +1152,7 @@ elif mode == "期間シミュ":
                 key="period_manual_set_dmg_bonus"
             )
 
-            st.caption("基準ステータスは、キャラ・武器・バフなどをまとめた値として扱います。聖遺物のメイン/サブ分はシミュ結果から加算します。")            st.caption("基準ステータスは、キャラ・武器・バフなどをまとめた値として扱います。聖遺物のメイン/サブ分はシミュ結果から加算します。")
+            st.caption("基準ステータスは、キャラ・武器・バフなどをまとめた値として扱います。聖遺物のメイン/サブ分はシミュ結果から加算します。")            
         run_period = st.button("期間シミュ開始", use_container_width=True, type="primary")
 
         st.caption("1周あたり樹脂20で換算します。")
