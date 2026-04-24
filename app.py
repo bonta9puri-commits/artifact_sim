@@ -953,7 +953,7 @@ elif mode == "期間シミュ":
                 return
 
              # ダメージ比較β
-             if "damage_preview" in build_data:
+            if "damage_preview" in build_data:
                  preview_result = calc_damage_preview_from_selected(
                     character_name=character_name,
                     build_name=build_name,
