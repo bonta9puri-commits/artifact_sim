@@ -494,21 +494,24 @@ elif mode == "かんたん診断":
                     strongbox_target_set=strongbox_target_set
                 )
 
-                preview_bundle = run_custom_build_preview(
-                    character_name=character_name,
-                    build_name=build_name,
-                    selected_mainstats=selected_mainstats,
-                    score_mode=score_mode,
-                    target_score=target_score,
-                    elixir_interval=elixir_interval,
-                    reroll_interval=reroll_interval,
-                    reroll_times=reroll_times,
-                    max_attempts=max_attempts,
-                    strongbox_enabled=strongbox_enabled,
-                    strongbox_target_set=strongbox_target_set
-                )
+preview_bundle = None
+preview_result = None
 
-                preview_result = preview_bundle["preview_result"] if preview_bundle else None
+if "damage_preview" in build_data:
+    preview_bundle = run_custom_build_preview(
+        character_name=character_name,
+        build_name=build_name,
+        selected_mainstats=selected_mainstats,
+        score_mode=score_mode,
+        target_score=target_score,
+        elixir_interval=elixir_interval,
+        reroll_interval=reroll_interval,
+        reroll_times=reroll_times,
+        max_attempts=max_attempts,
+        strongbox_enabled=strongbox_enabled,
+        strongbox_target_set=strongbox_target_set
+    )
+    preview_result = preview_bundle["preview_result"] if preview_bundle else None
 
             st.markdown(
                 f"#### {result['character']}｜{result['label']}（目標スコア {result['target_score']}）"
@@ -585,11 +588,15 @@ elif mode == "かんたん診断":
 
                 st.caption("右に長いほど、沼りやすい条件です。")
 
-            if preview_result is not None:
-                preview = preview_result["preview_base"]
-                damage = preview_result["damage_result"]
-                crit = damage["crit"]
+if "damage_preview" not in build_data:
+    st.info("このキャラはまだダメージ比較βに対応していません。")
+elif preview_result is not None:
+    preview = preview_result["preview_base"]
+    damage = preview_result["damage_result"]
+    crit = damage["crit"]
 
+    st.markdown("#### 聖遺物比較β（試験表示）")
+    ...
                 st.markdown("#### 聖遺物比較β（試験表示）")
                 st.write(f"仮想敵: {preview['default_enemy'].get('name', '敵')} Lv{preview['default_enemy'].get('level', '-')}")
                 st.write(f"最終参照ステ: {damage['final_stat']}")
