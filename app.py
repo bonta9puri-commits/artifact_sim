@@ -590,22 +590,22 @@ elif mode == "かんたん診断":
                 st.caption("右に長いほど、沼りやすい条件です。")
 
                 if "damage_preview" not in build_data:
-                     st.info("このキャラはまだダメージ比較βに対応していません。")
+                    st.info("このキャラはまだダメージ比較βに対応していません。")
                 elif preview_result is not None:
-                     preview = preview_result["preview_base"]
-                     damage = preview_result["damage_result"]
-                     crit = damage["crit"]
+                    preview = preview_result["preview_base"]
+                    damage = preview_result["damage_result"]
+                    crit = damage["crit"]
 
-                st.markdown("#### 聖遺物比較β（試験表示）")
-                st.write(f"仮想敵: {preview['default_enemy'].get('name', '敵')} Lv{preview['default_enemy'].get('level', '-')}")
-                st.write(f"最終参照ステ: {damage['final_stat']}")
-                st.write(f"非会心指数（補正後）: {damage['final_non_crit_index']}")
-                st.write(f"会心指数（補正後）: {damage['final_crit_index']}")
-                st.write(f"期待値指数（補正後）: {damage['final_expected_index']}")
-                st.write(f"合計会心率: {crit['total_cr']}%")
-                st.write(f"実効会心率: {crit['effective_cr']}%")
-                st.write(f"あふれ会心率: {crit['overflow_cr']}%")
-                st.write(f"補正後会心ダメ: {crit['adjusted_cd']}%")
+                    st.markdown("#### 聖遺物比較β（試験表示）")
+                    st.write(f"仮想敵: {preview['default_enemy'].get('name', '敵')} Lv{preview['default_enemy'].get('level', '-')}")
+                    st.write(f"最終参照ステ: {damage['final_stat']}")
+                    st.write(f"非会心指数（補正後）: {damage['final_non_crit_index']}")
+                    st.write(f"会心指数（補正後）: {damage['final_crit_index']}")
+                    st.write(f"期待値指数（補正後）: {damage['final_expected_index']}")
+                    st.write(f"合計会心率: {crit['total_cr']}%")
+                    st.write(f"実効会心率: {crit['effective_cr']}%")
+                    st.write(f"あふれ会心率: {crit['overflow_cr']}%")
+                    st.write(f"補正後会心ダメ: {crit['adjusted_cd']}%")
 
             post_text = build_light_result_post_text(
                 character_name=character_name,
