@@ -944,13 +944,13 @@ elif mode == "期間シミュ":
             metric_col4.metric("上位10%", f"{result.get('upper10', result.get('best10'))}")
 
             def show_artifact_set(title, record):
-                 st.markdown(f"#### {title}：合計スコア {record['score']}")
+                st.markdown(f"#### {title}：合計スコア {record['score']}")
 
-                 selected_artifacts = record.get("selected_artifacts")
+                selected_artifacts = record.get("selected_artifacts")
 
-                 if not selected_artifacts:
-                     st.info("表示できる聖遺物セットがありません。")
-                     return
+                if not selected_artifacts:
+                    st.info("表示できる聖遺物セットがありません。")
+                    return
 
                 # ダメージ比較β
                 if "damage_preview" in build_data:
