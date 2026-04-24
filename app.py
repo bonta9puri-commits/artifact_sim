@@ -600,7 +600,16 @@ elif mode == "かんたん診断":
 
                     st.markdown("#### 聖遺物比較β（試験表示）")
                     st.write(f"仮想敵: {preview['default_enemy'].get('name', '敵')} Lv{preview['default_enemy'].get('level', '-')}")
-                    st.write(f"最終参照ステ: {damage['final_stat']}")
+                    stat_type = preview["stat_type"]
+
+                    if stat_type == "HP":
+                    st.write(f"最終HP: {damage['final_stat']:.0f}")
+                    elif stat_type == "攻撃":
+                    st.write(f"最終攻撃力: {damage['final_stat']:.0f}")
+                    elif stat_type == "防御":
+                    st.write(f"最終防御力: {damage['final_stat']:.0f}")
+                    else:
+                    st.write(f"最終参照ステ: {damage['final_stat']:.0f}")
                     st.write(f"非会心指数（補正後）: {damage['final_non_crit_index']}")
                     st.write(f"会心指数（補正後）: {damage['final_crit_index']}")
                     st.write(f"期待値指数（補正後）: {damage['final_expected_index']}")

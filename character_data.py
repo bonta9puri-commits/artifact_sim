@@ -118,6 +118,8 @@ character_builds = {
 
                 "base_crit_rate": 5.0,
                 "base_crit_damage": 50.0,
+                "talent_multiplier": 14.0,
+
 
                 "extra_stats": {
                     "HP%": 0.0,
