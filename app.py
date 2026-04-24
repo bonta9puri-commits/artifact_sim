@@ -1021,8 +1021,6 @@ elif mode == "期間シミュ":
                         show_artifact_set("上位10%", sample_artifacts["上位10%"])
 
             with st.expander("使用条件とスコア式を見る"):
-
-            with st.expander("使用条件とスコア式を見る"):
                 st.write(f"**評価タイプ**: {score_mode}")
                 st.write(f"**厳選日数**: {days}")
                 st.write(f"**1日の樹脂消費量**: {resin_per_day}")
