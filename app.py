@@ -937,7 +937,6 @@ elif mode == "期間シミュ":
             summary_col1.metric("総試行回数", f"{result['total_attempts']} 回")
             summary_col2.metric("シミュ回数", f"{trials} 回")
 
-            metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
             metric_col1.metric("平均", f"{result['average']}")
             metric_col2.metric("中央値", f"{result['median']}")
             metric_col3.metric("下位10%", f"{result.get('lower10', result.get('worst10'))}")
@@ -952,7 +951,6 @@ elif mode == "期間シミュ":
                     st.info("表示できる聖遺物セットがありません。")
                     return
 
-                # ダメージ比較β
                 if "damage_preview" in build_data:
                     preview_result = calc_damage_preview_from_selected(
                         character_name=character_name,
@@ -979,17 +977,6 @@ elif mode == "期間シミュ":
                     with dmg_col4:
                         st.metric("会心率", f"{crit['effective_cr']:.1f}%")
 
-                    crit_col1, crit_col2, crit_col3 = st.columns(3)
-
-                    with crit_col1:
-                        st.metric("会心ダメ", f"{crit['total_cd']:.1f}%")
-
-                    with crit_col2:
-                        st.metric("溢れ会心率", f"{crit['overflow_cr']:.1f}%")
-
-                    with crit_col3:
-                        st.metric("最終参照ステ", f"{damage['final_stat']:.0f}")
-
                 else:
                     st.caption("このキャラはまだダメージ比較βに対応していません。")
 
@@ -1010,6 +997,30 @@ elif mode == "期間シミュ":
 
                         st.write("**最終サブ**")
                         st.write(artifact.get("サブ", {}))
+
+            with st.expander("代表的な聖遺物セットを見る"):
+                sample_artifacts = result.get("sample_artifacts", {})
+
+                if not sample_artifacts:
+                    st.info("代表聖遺物セットがありません。")
+                else:
+                    tab_lower, tab_avg, tab_median, tab_upper = st.tabs(
+                        ["下位10%", "平均付近", "中央値", "上位10%"]
+                    )
+
+                    with tab_lower:
+                        show_artifact_set("下位10%", sample_artifacts["下位10%"])
+
+                    with tab_avg:
+                        show_artifact_set("平均付近", sample_artifacts["平均付近"])
+
+                    with tab_median:
+                        show_artifact_set("中央値", sample_artifacts["中央値"])
+
+                    with tab_upper:
+                        show_artifact_set("上位10%", sample_artifacts["上位10%"])
+
+            with st.expander("使用条件とスコア式を見る"):
 
             with st.expander("使用条件とスコア式を見る"):
                 st.write(f"**評価タイプ**: {score_mode}")
