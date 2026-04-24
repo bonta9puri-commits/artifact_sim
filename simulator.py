@@ -1256,9 +1256,8 @@ def build_damage_preview_base(character_name, build_name):
         "crit_rate_cap": round(crit_rate_cap, 2),
         "elemental_bonus_type": elemental_bonus_type,
         "elemental_bonus": round(elemental_bonus, 2),
-        "default_enemy": default_enemy
+        "default_enemy": default_enemy,
         "talent_name": talent_name,
-        "talent_multiplier": talent_multiplier,
         "reaction": reaction,
     }
 
