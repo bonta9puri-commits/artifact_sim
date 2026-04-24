@@ -35,6 +35,9 @@ mode = st.radio(
     horizontal=True
 )
 
+if "damage_compare_records" not in st.session_state:
+    st.session_state["damage_compare_records"] = []
+
 def build_light_query_params():
     data = build_light_preset_data()
     return {
@@ -624,8 +627,28 @@ elif mode == "かんたん診断":
                             st.metric("最終防御力", f"{damage['final_stat']:.0f}")
                         else:
                             st.metric("最終参照ステ", f"{damage['final_stat']:.0f}")
+
+
+                    save_title = f"{character_name}｜{build_name}｜{title}｜{days}日"
+
+                    if st.button(
+                        f"{title}を比較用に保存",
+                        key=f"save_compare_{character_name}_{build_name}_{days}_{title}"
+                    ):
+                        save_damage_compare_record(
+                            title=save_title,
+                            character_name=character_name,
+                            build_name=build_name,
+                            score_mode=score_mode,
+                            days=days,
+                            score=record["score"],
+                            selected_artifacts=selected_artifacts,
+                            preview_result=preview_result
+                        )
+                        st.success("比較用に保存しました。")
                     with top2:
                             st.metric("非会心ダメージ", f"{damage['final_non_crit_index']:.0f}")
+
                     with top3:
                             st.metric("会心ダメージ", f"{damage['final_crit_index']:.0f}")
                     with top4:
@@ -674,6 +697,37 @@ elif mode == "かんたん診断":
                 strongbox_target_set=strongbox_target_set
             )
 
+
+            with st.expander("保存したダメージ比較を見る"):
+                records = st.session_state.get("damage_compare_records", [])
+
+                if not records:
+                    st.info("まだ比較用に保存された結果はありません。")
+                else:
+                    st.write(f"保存数：{len(records)}件")
+
+                    base_expected = records[0]["expected"]
+
+                    for i, r in enumerate(records):
+                        diff = r["expected"] - base_expected
+                        diff_percent = (diff / base_expected * 100) if base_expected else 0
+
+                        st.markdown(f"#### {i + 1}. {r['title']}")
+
+                        col1, col2, col3, col4 = st.columns(4)
+                        col1.metric("スコア", f"{r['score']}")
+                        col2.metric("期待値", f"{r['expected']:.0f}", f"{diff_percent:+.1f}%")
+                        col3.metric("非会心", f"{r['non_crit']:.0f}")
+                        col4.metric("会心", f"{r['crit_damage']:.0f}")
+
+                        col5, col6, col7 = st.columns(3)
+                        col5.metric("会心率", f"{r['crit_rate']:.1f}%")
+                        col6.metric("会心ダメ", f"{r['crit_damage_stat']:.1f}%")
+                        col7.metric("最終参照ステ", f"{r['final_stat']:.0f}")
+
+                    if st.button("保存した比較結果をクリア"):
+                        st.session_state["damage_compare_records"] = []
+                        st.success("保存した比較結果をクリアしました。")
             st.markdown("#### 共有")
             share_col1, share_col2 = st.columns(2)
 
@@ -1096,6 +1150,38 @@ elif mode == "期間シミュ":
 
         else:
             st.info("左で条件を設定してシミュを開始してください。")
+
+def save_damage_compare_record(
+    title,
+    character_name,
+    build_name,
+    score_mode,
+    days,
+    score,
+    selected_artifacts,
+    preview_result
+):
+    damage = preview_result["damage_result"]
+    crit = damage["crit"]
+
+    record = {
+        "title": title,
+        "character_name": character_name,
+        "build_name": build_name,
+        "score_mode": score_mode,
+        "days": days,
+        "score": score,
+        "final_stat": damage["final_stat"],
+        "non_crit": damage["final_non_crit_index"],
+        "crit_damage": damage["final_crit_index"],
+        "expected": damage["final_expected_index"],
+        "crit_rate": crit["effective_cr"],
+        "crit_damage_stat": crit["total_cd"],
+        "overflow_cr": crit["overflow_cr"],
+        "selected_artifacts": selected_artifacts,
+    }
+
+    st.session_state["damage_compare_records"].append(record)
 
 with st.sidebar:
     st.markdown("---")
