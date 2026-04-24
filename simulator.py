@@ -218,7 +218,8 @@ def generate_artifact(part, score_weights=None, forced_set=None):
         "サブ": substats,
         "初期OP数": num_substats,
         "スコア": score
-    }# =========================
+    }
+# =========================
 # メインステ構築（UI選択用）
 # =========================
 def build_selected_mainstats(build_data, clock_choice, goblet_choice, circlet_choice):
@@ -379,6 +380,65 @@ def calc_damage_index(
         "crit": crit_result
     }
 
+def run_custom_build_preview(
+    character_name,
+    build_name,
+    selected_mainstats,
+    score_mode,
+    target_score=180,
+    elixir_interval=250,
+    reroll_interval=1000,
+    reroll_times=10,
+    max_attempts=100000,
+    current_gear=None,
+    strongbox_enabled=False,
+    strongbox_target_set="セット1",
+    overflow_mode="to_cd",
+    overflow_ratio=1.0
+):
+    character_data = character_builds[character_name]
+    build_data = character_data["builds"][build_name]
+
+    custom_build = {
+        "mainstats": selected_mainstats,
+        "elixir_fixed_substats": build_data["elixir_fixed_substats"],
+        "score_weights": build_data["score_weight_options"][score_mode]
+    }
+
+    initial_selected = build_selected_from_current_gear(current_gear)
+
+    count, best_total, best_selected = simulate_until_total_score_for_custom_build(
+        build=custom_build,
+        target_score=target_score,
+        elixir_interval=elixir_interval,
+        reroll_interval=reroll_interval,
+        reroll_times=reroll_times,
+        max_attempts=max_attempts,
+        initial_selected=initial_selected,
+        strongbox_enabled=strongbox_enabled,
+        strongbox_target_set=strongbox_target_set
+    )
+
+    if count is None or not best_selected:
+        return None
+
+    preview_result = calc_damage_preview_from_selected(
+        character_name=character_name,
+        build_name=build_name,
+        selected_artifacts=best_selected,
+        overflow_mode=overflow_mode,
+        overflow_ratio=overflow_ratio
+    )
+
+    return {
+        "character": character_name,
+        "label": build_name,
+        "target_score": target_score,
+        "attempts": count,
+        "best_total": best_total,
+        "selected_artifacts": best_selected,
+        "preview_result": preview_result
+    }
 # =========================
 # 統計まとめ
 # =========================

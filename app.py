@@ -9,7 +9,9 @@ from simulator import (
     run_custom_build_simulation,
     character_builds,
     parts,
-    run_fixed_period_build_simulation
+    run_fixed_period_build_simulation,
+    run_custom_build_preview,
+    run_fixed_period_build_preview
 )
 
 st.set_page_config(
@@ -490,6 +492,22 @@ elif mode == "かんたん診断":
                     strongbox_target_set=strongbox_target_set
                 )
 
+preview_bundle = run_custom_build_preview(
+    character_name=character_name,
+    build_name=build_name,
+    selected_mainstats=selected_mainstats,
+    score_mode=score_mode,
+    target_score=target_score,
+    elixir_interval=elixir_interval,
+    reroll_interval=reroll_interval,
+    reroll_times=reroll_times,
+    max_attempts=max_attempts,
+    strongbox_enabled=strongbox_enabled,
+    strongbox_target_set=strongbox_target_set
+)
+
+preview_result = preview_bundle["preview_result"] if preview_bundle else None
+
             st.markdown(
                 f"#### {result['character']}｜{result['label']}（目標スコア {result['target_score']}）"
             )
@@ -544,15 +562,6 @@ elif mode == "かんたん診断":
                         day_col2.metric("良い側10%日数", f"{best10_days:.1f} 日")
                         day_col3.metric("沼側10%日数", f"{worst10_days:.1f} 日")
 
-                    if avg_days <= 14:
-                        st.success("比較的現実的です")
-                    elif avg_days <= 30:
-                        st.warning("少し重めです")
-                    else:
-                        st.error("かなり重いです")
-                else:
-                    st.info("1日の樹脂消費量が0のため、日数換算は表示できません。")
-
                 fig, ax = plt.subplots()
                 ax.hist(result["results"], bins=20)
                 ax.axvline(result["average"], linestyle="--", label="平均")
@@ -564,7 +573,21 @@ elif mode == "かんたん診断":
                 st.pyplot(fig)
 
                 st.caption("右に長いほど、沼りやすい条件です。")
+if preview_result is not None:
+    preview = preview_result["preview_base"]
+    damage = preview_result["damage_result"]
+    crit = damage["crit"]
 
+    st.markdown("#### 聖遺物比較β（試験表示）")
+    st.write(f"仮想敵: {preview['default_enemy'].get('name', '敵')} Lv{preview['default_enemy'].get('level', '-')}")
+    st.write(f"最終参照ステ: {damage['final_stat']}")
+    st.write(f"非会心指数（補正後）: {damage['final_non_crit_index']}")
+    st.write(f"会心指数（補正後）: {damage['final_crit_index']}")
+    st.write(f"期待値指数（補正後）: {damage['final_expected_index']}")
+    st.write(f"合計会心率: {crit['total_cr']}%")
+    st.write(f"実効会心率: {crit['effective_cr']}%")
+    st.write(f"あふれ会心率: {crit['overflow_cr']}%")
+    st.write(f"補正後会心ダメ: {crit['adjusted_cd']}%")
             post_text = build_light_result_post_text(
                 character_name=character_name,
                 build_name=build_name,
