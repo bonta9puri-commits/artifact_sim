@@ -314,8 +314,8 @@ def build_period_result_post_text(
         f"総試行回数: {result['total_attempts']}回",
         f"平均スコア: {result['average']}",
         f"中央値: {result['median']}",
-        f"良い側10%: {result['best10']}",
-        f"沼側10%: {result['worst10']}",
+        f"下位10%: {result.get('lower10', result.get('worst10'))}",
+        f"上位10%: {result.get('upper10', result.get('best10'))}",
     ]
 
     option_text = []
@@ -1117,9 +1117,32 @@ elif mode == "期間シミュ":
                 )
 
             st.session_state["period_result"] = result
+            st.session_state["period_damage_settings"] = {
+                "damage_calc_mode": damage_calc_mode,
+                "manual_stat_type": manual_stat_type,
+                "manual_base_stat": manual_base_stat,
+                "manual_talent_multiplier": manual_talent_multiplier,
+                "manual_base_crit_rate": manual_base_crit_rate,
+                "manual_base_crit_damage": manual_base_crit_damage,
+                "manual_dmg_bonus": manual_dmg_bonus,
+                "manual_enemy_resistance": manual_enemy_resistance,
+                "manual_enemy_level": manual_enemy_level,
+            }
 
         if "period_result" in st.session_state:
             result = st.session_state["period_result"]
+
+            period_damage_settings = st.session_state.get("period_damage_settings", {})
+
+            saved_damage_calc_mode = period_damage_settings.get("damage_calc_mode", damage_calc_mode)
+            saved_manual_stat_type = period_damage_settings.get("manual_stat_type", manual_stat_type)
+            saved_manual_base_stat = period_damage_settings.get("manual_base_stat", manual_base_stat)
+            saved_manual_talent_multiplier = period_damage_settings.get("manual_talent_multiplier", manual_talent_multiplier)
+            saved_manual_base_crit_rate = period_damage_settings.get("manual_base_crit_rate", manual_base_crit_rate)
+            saved_manual_base_crit_damage = period_damage_settings.get("manual_base_crit_damage", manual_base_crit_damage)
+            saved_manual_dmg_bonus = period_damage_settings.get("manual_dmg_bonus", manual_dmg_bonus)
+            saved_manual_enemy_resistance = period_damage_settings.get("manual_enemy_resistance", manual_enemy_resistance)
+            saved_manual_enemy_level = period_damage_settings.get("manual_enemy_level", manual_enemy_level)
 
             st.markdown(
                 f"#### {result['character']}｜{result['label']}（{result['days']}日）"
@@ -1149,20 +1172,20 @@ elif mode == "期間シミュ":
 
                 preview_result = None
 
-                if damage_calc_mode == "手動設定を使う":
+                if saved_damage_calc_mode == "手動設定を使う":
                     preview_result = calc_manual_damage_preview_from_selected(
                         selected_artifacts=selected_artifacts,
-                        stat_type=manual_stat_type,
-                        base_stat=manual_base_stat,
-                        talent_multiplier=manual_talent_multiplier,
-                        dmg_bonus=manual_dmg_bonus,
-                        base_crit_rate=manual_base_crit_rate,
-                        base_crit_damage=manual_base_crit_damage,
-                        enemy_level=manual_enemy_level,
-                        enemy_resistance=manual_enemy_resistance
+                        stat_type=saved_manual_stat_type,
+                        base_stat=saved_manual_base_stat,
+                        talent_multiplier=saved_manual_talent_multiplier,
+                        dmg_bonus=saved_manual_dmg_bonus,
+                        base_crit_rate=saved_manual_base_crit_rate,
+                        base_crit_damage=saved_manual_base_crit_damage,
+                        enemy_level=saved_manual_enemy_level,
+                        enemy_resistance=saved_manual_enemy_resistance
                     )
 
-                elif "damage_preview" in build_data:
+                elif saved_damage_calc_mode == "キャラプリセットを使う" and "damage_preview" in build_data:
                     preview_result = calc_damage_preview_from_selected(
                         character_name=character_name,
                         build_name=build_name,
@@ -1173,7 +1196,13 @@ elif mode == "期間シミュ":
                     damage = preview_result["damage_result"]
                     crit = damage["crit"]
 
-                    save_title = f"{character_name}｜{build_name}｜{title}｜{days}日"
+                    if saved_damage_calc_mode == "手動設定を使う":
+                        save_title = (
+                            f"{character_name}｜{build_name}｜{title}｜{days}日｜"
+                            f"{saved_manual_stat_type}参照 {saved_manual_talent_multiplier}%"
+                        )
+                    else:
+                        save_title = f"{character_name}｜{build_name}｜{title}｜{days}日｜プリセット"
 
                     if st.button(
                         f"{title}を比較用に保存",
@@ -1252,6 +1281,7 @@ elif mode == "期間シミュ":
 
                         st.write("**最終サブ**")
                         st.write(artifact.get("サブ", {}))
+
 
             with st.expander("代表的な聖遺物セットを見る"):
                 sample_artifacts = result.get("sample_artifacts", {})
