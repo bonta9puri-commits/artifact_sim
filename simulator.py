@@ -1,4 +1,5 @@
 import random
+import copy
 from itertools import product
 
 # キャラデータ読み込み
@@ -530,6 +531,46 @@ def summarize_results(results):
         "best10": best10,
         "worst10": worst10,
         "results": results
+    }
+def summarize_period_records(records):
+    if not records:
+        return {
+            "average": None,
+            "median": None,
+            "lower10": None,
+            "upper10": None,
+            "results": [],
+            "sample_artifacts": {}
+        }
+
+    records = sorted(records, key=lambda r: r["score"])
+    scores = [r["score"] for r in records]
+    n = len(records)
+
+    avg = sum(scores) / n
+    median = scores[n // 2] if n % 2 else (scores[n // 2 - 1] + scores[n // 2]) / 2
+
+    lower10_index = min(n - 1, max(0, int((n - 1) * 0.10)))
+    median_index = min(n - 1, max(0, int((n - 1) * 0.50)))
+    upper10_index = min(n - 1, max(0, int((n - 1) * 0.90)))
+
+    average_index = min(
+        range(n),
+        key=lambda i: abs(records[i]["score"] - avg)
+    )
+
+    return {
+        "average": round(avg, 1),
+        "median": median,
+        "lower10": scores[lower10_index],
+        "upper10": scores[upper10_index],
+        "results": scores,
+        "sample_artifacts": {
+            "下位10%": records[lower10_index],
+            "平均付近": records[average_index],
+            "中央値": records[median_index],
+            "上位10%": records[upper10_index],
+        }
     }
 # =========================
 # エリクシル生成（固定サブステ付き）
@@ -1109,10 +1150,10 @@ def run_fixed_period_build_simulation(
     initial_selected = build_selected_from_current_gear(current_gear)
 
     total_attempts = int(days * resin_per_day / 20)
-    results = []
+    records = []
 
     for _ in range(trials):
-        total_score, _ = simulate_score_after_fixed_attempts_for_custom_build(
+        total_score, selected_artifacts = simulate_score_after_fixed_attempts_for_custom_build(
             build=custom_build,
             total_attempts=total_attempts,
             elixir_interval=elixir_interval,
@@ -1122,22 +1163,30 @@ def run_fixed_period_build_simulation(
             strongbox_enabled=strongbox_enabled,
             strongbox_target_set=strongbox_target_set
         )
-        results.append(total_score)
 
-    summary = summarize_results(results)
+        records.append({
+            "score": total_score,
+            "selected_artifacts": copy.deepcopy(selected_artifacts)
+        })
+
+    summary = summarize_period_records(records)
 
     return {
         "character": character_name,
         "label": build_name,
         "days": days,
-        "resin_per_day": resin_per_day,
         "total_attempts": total_attempts,
         "mainstats": selected_mainstats,
         "average": summary["average"],
         "median": summary["median"],
-        "best10": summary["best10"],
-        "worst10": summary["worst10"],
-        "results": summary["results"]
+        "lower10": summary["lower10"],
+        "upper10": summary["upper10"],
+        "results": summary["results"],
+        "sample_artifacts": summary["sample_artifacts"],
+
+        # 既存UIとの互換用
+        "best10": summary["upper10"],
+        "worst10": summary["lower10"],
     }
 
 # =========================
