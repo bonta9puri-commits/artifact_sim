@@ -37,6 +37,7 @@ components.html(
     </script>
     """,
     height=0
+)
     
 st.title("原神 聖遺物厳選シミュレーター")
 st.markdown("""
