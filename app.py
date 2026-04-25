@@ -26,15 +26,17 @@ GA_TRACKING_ID = "G-2TCB0YH1W0"
 
 components.html(
     f"""
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-2TCB0YH1W0"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2TCB0YH1W0"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-  gtag('config', 'G-2TCB0YH1W0');
-</script>
+      gtag('config', 'G-2TCB0YH1W0');
+    </script>
+    """,
+    height=0
     
 st.title("原神 聖遺物厳選シミュレーター")
 st.markdown("""
