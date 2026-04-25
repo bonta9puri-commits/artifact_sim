@@ -1,6 +1,7 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import urllib.parse
+import streamlit.components.v1 as components
 from simulator import (
     generate_artifact,
     run_multiple_simulations,
@@ -21,7 +22,19 @@ st.set_page_config(
     page_title="原神 聖遺物厳選シミュレーター｜目標スコア到達回数を計算",
     layout="wide"
 )
+GA_TRACKING_ID = "G-2TCB0YH1W0"
 
+components.html(
+    f"""
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2TCB0YH1W0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-2TCB0YH1W0');
+</script>
     
 st.title("原神 聖遺物厳選シミュレーター")
 st.markdown("""
