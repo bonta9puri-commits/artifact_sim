@@ -22,23 +22,23 @@ st.set_page_config(
     page_title="原神 聖遺物厳選シミュレーター｜目標スコア到達回数を計算",
     layout="wide"
 )
-GA_TRACKING_ID = "G-2TCB0YH1W0"
+GA_ID = "G-2TCB0YH1W0"  # ここを自分の測定IDに変える
 
-components.html(
+st.components.v1.html(
     f"""
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2TCB0YH1W0"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
+      function gtag(){{dataLayer.push(arguments);}}
       gtag('js', new Date());
 
       gtag('config', 'G-2TCB0YH1W0');
     </script>
     """,
-    height=0
+    height=0,
 )
-    
+  
 st.title("原神 聖遺物厳選シミュレーター")
 st.markdown("""
 原神の聖遺物厳選で、目標スコアに到達するまでの試行回数をシミュレーションできるツールです。
