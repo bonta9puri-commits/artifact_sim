@@ -368,117 +368,352 @@ def build_period_result_post_text(
     ])
     return "\n".join(lines)
 
+def calc_percentile_from_results(user_score, results):
+    """
+    入力スコアが、シミュ結果の中でどの位置かを計算する。
+    例：percentile=82なら、下から82%地点 = 上位18%くらい。
+    """
+    scores = np.array(results)
 
+    if len(scores) == 0:
+        return None
+
+    return float(np.mean(scores <= user_score) * 100)
+
+
+def get_star_rating_from_percentile(percentile):
+    """
+    percentileは「自分より低い結果が何%あるか」。
+    高いほど良い。
+    """
+    if percentile is None:
+        return "評価不可", "データなし", "シミュ結果がないため評価できません。"
+
+    top_percent = 100 - percentile
+
+    if percentile < 25:
+        return "★☆☆☆☆", "下位25%未満", "この日数基準ではかなり下振れ寄りです。"
+    elif percentile < 50:
+        return "★★☆☆☆", "下位25%〜中央値未満", "この日数基準ではやや下振れ寄りです。"
+    elif percentile < 75:
+        return "★★★☆☆", "中央値〜上位25%", "この日数基準では普通〜やや良い範囲です。"
+    elif percentile < 90:
+        return "★★★★☆", "上位25%〜上位10%", "この日数基準ではかなり良い結果です。"
+    else:
+        return "★★★★★", "上位10%以上", "この日数基準ではかなり上振れた結果です。"
+
+
+def render_artifact_star_diagnosis():
+    st.subheader("聖遺物ランク診断")
+    st.info("入力した聖遺物セットの合計スコアを、指定した厳選日数のシミュ結果と比較して星評価します。")
+
+    left_col, right_col = st.columns([1, 1.5])
+
+    with left_col:
+        st.markdown("### 設定")
+
+        element_filter = st.selectbox(
+            "元素で絞り込み",
+            ["すべて", "炎", "水", "雷", "氷", "風", "岩", "草"],
+            key="rank_element_filter"
+        )
+
+        if element_filter == "すべて":
+            filtered_character_names = sorted(character_builds.keys())
+        else:
+            filtered_character_names = sorted(
+                name for name, data in character_builds.items()
+                if data.get("element") == element_filter
+            )
+
+        if not filtered_character_names:
+            st.warning("この元素のキャラはまだ登録されていません。")
+            st.stop()
+
+        character_name = st.selectbox(
+            "キャラを選択",
+            filtered_character_names,
+            key="rank_character_name"
+        )
+
+        build_names = list(character_builds[character_name]["builds"].keys())
+        build_name = st.selectbox(
+            "ビルドを選択",
+            build_names,
+            key="rank_build_name"
+        )
+
+        build_data = character_builds[character_name]["builds"][build_name]
+
+        clock_choice = st.selectbox(
+            "時計",
+            build_data["mainstat_options"]["時計"],
+            key="rank_clock_choice"
+        )
+
+        goblet_choice = st.selectbox(
+            "杯",
+            build_data["mainstat_options"]["杯"],
+            key="rank_goblet_choice"
+        )
+
+        circlet_choice = st.selectbox(
+            "冠",
+            build_data["mainstat_options"]["冠"],
+            key="rank_circlet_choice"
+        )
+
+        score_mode_names = list(build_data["score_weight_options"].keys())
+        default_score_mode = build_data.get("default_score_mode", score_mode_names[0])
+        default_score_index = score_mode_names.index(default_score_mode) if default_score_mode in score_mode_names else 0
+
+        score_mode = st.selectbox(
+            "評価タイプ",
+            score_mode_names,
+            index=default_score_index,
+            key="rank_score_mode"
+        )
+
+        st.markdown("### 入力する聖遺物スコア")
+
+        input_mode = st.radio(
+            "入力方式",
+            ["5部位の合計スコアを入力", "部位ごとに入力"],
+            horizontal=False,
+            key="rank_input_mode"
+        )
+
+        if input_mode == "5部位の合計スコアを入力":
+            user_score = st.number_input(
+                "5部位の合計スコア",
+                min_value=0.0,
+                max_value=500.0,
+                value=180.0,
+                step=0.1,
+                key="rank_total_score"
+            )
+        else:
+            part_scores = {}
+            for part in parts:
+                part_scores[part] = st.number_input(
+                    f"{part}のスコア",
+                    min_value=0.0,
+                    max_value=100.0,
+                    value=0.0,
+                    step=0.1,
+                    key=f"rank_part_score_{part}"
+                )
+
+            user_score = sum(part_scores.values())
+            st.caption(f"入力された5部位合計：{user_score:.1f}")
+
+        st.markdown("### 厳選日数")
+
+        day_preset = st.radio(
+            "日数プリセット",
+            ["30日", "90日", "180日", "365日", "自由入力"],
+            horizontal=True,
+            key="rank_day_preset"
+        )
+
+        if day_preset == "30日":
+            days = 30
+        elif day_preset == "90日":
+            days = 90
+        elif day_preset == "180日":
+            days = 180
+        elif day_preset == "365日":
+            days = 365
+        else:
+            days = st.number_input(
+                "厳選日数",
+                min_value=1,
+                max_value=3650,
+                value=180,
+                step=30,
+                key="rank_days"
+            )
+
+        resin_per_day = st.number_input(
+            "1日の樹脂消費量",
+            min_value=0,
+            max_value=300,
+            value=180,
+            step=20,
+            key="rank_resin_per_day"
+        )
+
+        trial_option = st.selectbox(
+            "シミュ精度",
+            ["軽量（100回）", "標準（300回）", "高精度（1000回）"],
+            index=1,
+            key="rank_trial_option"
+        )
+
+        trial_map = {
+            "軽量（100回）": 100,
+            "標準（300回）": 300,
+            "高精度（1000回）": 1000
+        }
+
+        trials = trial_map[trial_option]
+
+        with st.expander("詳細設定"):
+            elixir_interval = st.number_input(
+                "エリクシル使用間隔（0で使用しない）",
+                min_value=0,
+                max_value=5000,
+                value=0,
+                step=50,
+                key="rank_elixir_interval"
+            )
+
+            reroll_interval = st.number_input(
+                "振り直し使用間隔（0で使用しない）",
+                min_value=0,
+                max_value=10000,
+                value=0,
+                step=100,
+                key="rank_reroll_interval"
+            )
+
+            reroll_times = st.number_input(
+                "振り直し1回の試行数",
+                min_value=1,
+                max_value=100,
+                value=1,
+                step=1,
+                key="rank_reroll_times"
+            )
+
+            strongbox_enabled = st.checkbox(
+                "廻聖を使う",
+                value=False,
+                key="rank_strongbox_enabled"
+            )
+
+            strongbox_target_set = st.selectbox(
+                "廻聖の対象セット",
+                ["セット1", "セット2"],
+                key="rank_strongbox_target_set"
+            )
+
+        run_rank = st.button(
+            "星評価する",
+            use_container_width=True,
+            type="primary",
+            key="rank_run_button"
+        )
+
+        st.caption("※現在は5部位合計スコアを、同条件の期間シミュ分布と比較します。")
+        st.caption("※単品聖遺物ごとの分位評価は、今後追加予定の拡張向けです。")
+
+    with right_col:
+        st.markdown("### 診断結果")
+
+        if run_rank:
+            selected_mainstats = build_selected_mainstats(
+                build_data,
+                clock_choice,
+                goblet_choice,
+                circlet_choice
+            )
+
+            with st.spinner("シミュレーション中..."):
+                result = run_fixed_period_build_simulation(
+                    character_name=character_name,
+                    build_name=build_name,
+                    selected_mainstats=selected_mainstats,
+                    score_mode=score_mode,
+                    days=days,
+                    resin_per_day=resin_per_day,
+                    trials=trials,
+                    elixir_interval=elixir_interval,
+                    reroll_interval=reroll_interval,
+                    reroll_times=reroll_times,
+                    current_gear={},
+                    strongbox_enabled=strongbox_enabled,
+                    strongbox_target_set=strongbox_target_set
+                )
+
+            results = result.get("results", [])
+            percentile = calc_percentile_from_results(user_score, results)
+            stars, label, comment = get_star_rating_from_percentile(percentile)
+
+            if percentile is None:
+                st.warning("シミュ結果が取得できませんでした。")
+                return
+
+            top_percent = 100 - percentile
+
+            st.markdown(
+                f"#### {result['character']}｜{result['label']}｜{days}日基準"
+            )
+
+            result_col1, result_col2, result_col3 = st.columns(3)
+
+            with result_col1:
+                st.metric("入力スコア", f"{user_score:.1f}")
+
+            with result_col2:
+                st.metric("星評価", stars)
+
+            with result_col3:
+                st.metric("位置", f"上位{top_percent:.1f}%")
+
+            st.markdown(f"### {stars}")
+            st.markdown(f"**評価：{label}**")
+            st.write(comment)
+
+            st.markdown("#### シミュ分布との比較")
+
+            scores = np.array(results)
+
+            lower25 = np.percentile(scores, 25)
+            median = np.percentile(scores, 50)
+            upper25 = np.percentile(scores, 75)
+            upper10 = np.percentile(scores, 90)
+
+            comp_col1, comp_col2, comp_col3, comp_col4 = st.columns(4)
+            comp_col1.metric("下位25%", f"{lower25:.1f}")
+            comp_col2.metric("中央値", f"{median:.1f}")
+            comp_col3.metric("上位25%", f"{upper25:.1f}")
+            comp_col4.metric("上位10%", f"{upper10:.1f}")
+
+            fig, ax = plt.subplots()
+            ax.hist(results, bins=20)
+            ax.axvline(user_score, linestyle="-", label="入力スコア")
+            ax.axvline(median, linestyle=":", label="中央値")
+            ax.axvline(upper25, linestyle="--", label="上位25%")
+            ax.axvline(upper10, linestyle="--", label="上位10%")
+            ax.set_title(f"{character_name} の{days}日シミュ分布との比較")
+            ax.set_xlabel("5部位合計スコア")
+            ax.set_ylabel("件数")
+            ax.legend()
+            st.pyplot(fig)
+
+            with st.expander("使用条件を見る"):
+                st.write(f"**キャラ**: {character_name}")
+                st.write(f"**ビルド**: {build_name}")
+                st.write(f"**評価タイプ**: {score_mode}")
+                st.write(f"**厳選日数**: {days}")
+                st.write(f"**1日の樹脂消費量**: {resin_per_day}")
+                st.write(f"**シミュ回数**: {trials}")
+                st.write(f"**エリクシル使用間隔**: {elixir_interval}")
+                st.write(f"**振り直し使用間隔**: {reroll_interval}")
+                st.write(f"**振り直し1回の試行数**: {reroll_times}")
+                st.write(f"**廻聖を使う**: {'あり' if strongbox_enabled else 'なし'}")
+                if strongbox_enabled:
+                    st.write(f"**廻聖の対象セット**: {strongbox_target_set}")
+
+            st.caption("※この星評価は、指定した条件のシミュ結果内での相対評価です。絶対的な強さを保証するものではありません。")
+
+        else:
+            st.info("左で条件とスコアを入力して、星評価を開始してください。")
 
 if "query_applied" not in st.session_state:
     apply_light_query_params()
     st.session_state["query_applied"] = True
-
-def calc_simple_artifact_score(crit_rate, crit_dmg, atk_percent=0.0, er=0.0, em=0.0):
-    """
-    簡易聖遺物スコア。
-    原神でよく使われる会心スコアを中心に、攻撃%・チャージ・熟知を軽く加点する。
-    """
-    crit_score = crit_rate * 2 + crit_dmg
-    extra_score = atk_percent * 0.7 + er * 0.5 + em * 0.08
-    return crit_score + extra_score
-
-
-def estimate_score_thresholds_by_days(days):
-    """
-    日数ごとの星評価基準。
-    まずは仮置き。あとで実シミュ結果の分位点に差し替え可能。
-    """
-    days = max(days, 1)
-
-    # 日数が増えるほど要求ラインが上がる。ただし伸びは緩やかにする
-    base = 25 + 8 * np.log10(days)
-
-    return {
-        "star1": base - 8,    # 下位寄り
-        "star2": base,        # 普通下限
-        "star3": base + 8,    # 上振れ入口
-        "star4": base + 16,   # かなり上振れ
-        "star5": base + 25,   # 神引き級
-    }
-
-
-def get_artifact_star_rating(score, days):
-    thresholds = estimate_score_thresholds_by_days(days)
-
-    if score < thresholds["star1"]:
-        return "★☆☆☆☆", "下振れ", "かなり厳しい結果です"
-    elif score < thresholds["star2"]:
-        return "★★☆☆☆", "やや下振れ", "日数基準では少し物足りないかも"
-    elif score < thresholds["star3"]:
-        return "★★★☆☆", "ふつう〜良い", "現実的には十分あり得る範囲です"
-    elif score < thresholds["star4"]:
-        return "★★★★☆", "かなり上振れ", "この日数ならかなり良い聖遺物です"
-    else:
-        return "★★★★★", "神引き級", "この日数基準ではかなりレアです"
-
-
-def render_artifact_star_diagnosis():
-    st.header("聖遺物ランク診断")
-    st.write("入力した聖遺物を、指定した厳選日数基準で星評価します。")
-
-    st.subheader("1. 厳選日数を設定")
-
-    preset = st.radio(
-        "日数プリセット",
-        ["30日", "90日", "180日", "365日", "自由入力"],
-        horizontal=True,
-    )
-
-    if preset == "30日":
-        days = 30
-    elif preset == "90日":
-        days = 90
-    elif preset == "180日":
-        days = 180
-    elif preset == "365日":
-        days = 365
-    else:
-        days = st.number_input("厳選日数", min_value=1, max_value=9999, value=180, step=1)
-
-    st.subheader("2. 聖遺物ステータスを入力")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        crit_rate = st.number_input("会心率 %", min_value=0.0, max_value=50.0, value=7.8, step=0.1)
-        crit_dmg = st.number_input("会心ダメージ %", min_value=0.0, max_value=100.0, value=21.8, step=0.1)
-        atk_percent = st.number_input("攻撃力 %", min_value=0.0, max_value=50.0, value=0.0, step=0.1)
-
-    with col2:
-        er = st.number_input("元素チャージ効率 %", min_value=0.0, max_value=50.0, value=0.0, step=0.1)
-        em = st.number_input("元素熟知", min_value=0.0, max_value=150.0, value=0.0, step=1.0)
-
-    score = calc_simple_artifact_score(
-        crit_rate=crit_rate,
-        crit_dmg=crit_dmg,
-        atk_percent=atk_percent,
-        er=er,
-        em=em,
-    )
-
-    stars, label, comment = get_artifact_star_rating(score, days)
-
-    st.subheader("3. 診断結果")
-
-    st.metric("簡易スコア", f"{score:.1f}")
-    st.markdown(f"## {days}日厳選基準：{stars}")
-    st.markdown(f"**評価：{label}**")
-    st.write(comment)
-
-    with st.expander("星評価の目安を見る"):
-        thresholds = estimate_score_thresholds_by_days(days)
-        st.write(f"★1目安：{thresholds['star1']:.1f} 未満")
-        st.write(f"★2目安：{thresholds['star1']:.1f} 〜 {thresholds['star2']:.1f}")
-        st.write(f"★3目安：{thresholds['star2']:.1f} 〜 {thresholds['star3']:.1f}")
-        st.write(f"★4目安：{thresholds['star3']:.1f} 〜 {thresholds['star4']:.1f}")
-        st.write(f"★5目安：{thresholds['star4']:.1f} 以上")
-        st.caption("※この基準は仮置きです。あとで実シミュレーションの分布から分位点評価に差し替える想定です。")
 
 # =========================
 # 運試しモード
