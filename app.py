@@ -374,6 +374,48 @@ if "query_applied" not in st.session_state:
     apply_light_query_params()
     st.session_state["query_applied"] = True
 
+def calc_simple_artifact_score(crit_rate, crit_dmg, atk_percent=0.0, er=0.0, em=0.0):
+    """
+    簡易聖遺物スコア。
+    原神でよく使われる会心スコアを中心に、攻撃%・チャージ・熟知を軽く加点する。
+    """
+    crit_score = crit_rate * 2 + crit_dmg
+    extra_score = atk_percent * 0.7 + er * 0.5 + em * 0.08
+    return crit_score + extra_score
+
+
+def estimate_score_thresholds_by_days(days):
+    """
+    日数ごとの星評価基準。
+    まずは仮置き。あとで実シミュ結果の分位点に差し替え可能。
+    """
+    days = max(days, 1)
+
+    # 日数が増えるほど要求ラインが上がる。ただし伸びは緩やかにする
+    base = 25 + 8 * np.log10(days)
+
+    return {
+        "star1": base - 8,    # 下位寄り
+        "star2": base,        # 普通下限
+        "star3": base + 8,    # 上振れ入口
+        "star4": base + 16,   # かなり上振れ
+        "star5": base + 25,   # 神引き級
+    }
+
+
+def get_artifact_star_rating(score, days):
+    thresholds = estimate_score_thresholds_by_days(days)
+
+    if score < thresholds["star1"]:
+        return "★☆☆☆☆", "下振れ", "かなり厳しい結果です"
+    elif score < thresholds["star2"]:
+        return "★★☆☆☆", "やや下振れ", "日数基準では少し物足りないかも"
+    elif score < thresholds["star3"]:
+        return "★★★☆☆", "ふつう〜良い", "現実的には十分あり得る範囲です"
+    elif score < thresholds["star4"]:
+        return "★★★★☆", "かなり上振れ", "この日数ならかなり良い聖遺物です"
+    else:
+        return "★★★★★", "神引き級", "この日数基準ではかなりレアです"
 
 # =========================
 # 運試しモード
@@ -1520,54 +1562,11 @@ elif mode == "期間シミュ":
                 )
 
         else:
-            st.info("左で条件を設定してシミュを開始してください。")4
+            st.info("左で条件を設定してシミュを開始してください。")
 
 
 elif mode == "聖遺物ランク診断":
     render_artifact_star_diagnosis()
-
-def calc_simple_artifact_score(crit_rate, crit_dmg, atk_percent=0.0, er=0.0, em=0.0):
-    """
-    簡易聖遺物スコア。
-    原神でよく使われる会心スコアを中心に、攻撃%・チャージ・熟知を軽く加点する。
-    """
-    crit_score = crit_rate * 2 + crit_dmg
-    extra_score = atk_percent * 0.7 + er * 0.5 + em * 0.08
-    return crit_score + extra_score
-
-
-def estimate_score_thresholds_by_days(days):
-    """
-    日数ごとの星評価基準。
-    まずは仮置き。あとで実シミュ結果の分位点に差し替え可能。
-    """
-    days = max(days, 1)
-
-    # 日数が増えるほど要求ラインが上がる。ただし伸びは緩やかにする
-    base = 25 + 8 * np.log10(days)
-
-    return {
-        "star1": base - 8,    # 下位寄り
-        "star2": base,        # 普通下限
-        "star3": base + 8,    # 上振れ入口
-        "star4": base + 16,   # かなり上振れ
-        "star5": base + 25,   # 神引き級
-    }
-
-
-def get_artifact_star_rating(score, days):
-    thresholds = estimate_score_thresholds_by_days(days)
-
-    if score < thresholds["star1"]:
-        return "★☆☆☆☆", "下振れ", "かなり厳しい結果です"
-    elif score < thresholds["star2"]:
-        return "★★☆☆☆", "やや下振れ", "日数基準では少し物足りないかも"
-    elif score < thresholds["star3"]:
-        return "★★★☆☆", "ふつう〜良い", "現実的には十分あり得る範囲です"
-    elif score < thresholds["star4"]:
-        return "★★★★☆", "かなり上振れ", "この日数ならかなり良い聖遺物です"
-    else:
-        return "★★★★★", "神引き級", "この日数基準ではかなりレアです"
 
 
 def render_artifact_star_diagnosis():
