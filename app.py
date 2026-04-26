@@ -417,9 +417,6 @@ def get_artifact_star_rating(score, days):
     else:
         return "★★★★★", "神引き級", "この日数基準ではかなりレアです"
 
-elif mode == "聖遺物ランク診断":
-    render_artifact_star_diagnosis()
-
 
 def render_artifact_star_diagnosis():
     st.header("聖遺物ランク診断")
@@ -1630,6 +1627,8 @@ elif mode == "期間シミュ":
         else:
             st.info("左で条件を設定してシミュを開始してください。")
 
+elif mode == "聖遺物ランク診断":
+    render_artifact_star_diagnosis()
 
 with st.sidebar:
     st.markdown("---")
