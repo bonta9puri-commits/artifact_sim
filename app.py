@@ -2,6 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import urllib.parse
 import streamlit.components.v1 as components
+import numpy as np
 from simulator import (
     generate_artifact,
     run_multiple_simulations,
@@ -49,7 +50,7 @@ st.markdown("""
 """)
 mode = st.radio(
     "モードを選択",
-    ["運試し", "かんたん診断", "期間シミュ"],
+    ["運試し", "かんたん診断", "期間シミュ","聖遺物ランク診断"],
     horizontal=True
 )
 
@@ -372,6 +373,7 @@ def build_period_result_post_text(
 if "query_applied" not in st.session_state:
     apply_light_query_params()
     st.session_state["query_applied"] = True
+
 
 # =========================
 # 運試しモード
@@ -1518,7 +1520,117 @@ elif mode == "期間シミュ":
                 )
 
         else:
-            st.info("左で条件を設定してシミュを開始してください。")
+            st.info("左で条件を設定してシミュを開始してください。")4
+
+
+elif mode == "聖遺物ランク診断":
+    render_artifact_star_diagnosis()
+
+def calc_simple_artifact_score(crit_rate, crit_dmg, atk_percent=0.0, er=0.0, em=0.0):
+    """
+    簡易聖遺物スコア。
+    原神でよく使われる会心スコアを中心に、攻撃%・チャージ・熟知を軽く加点する。
+    """
+    crit_score = crit_rate * 2 + crit_dmg
+    extra_score = atk_percent * 0.7 + er * 0.5 + em * 0.08
+    return crit_score + extra_score
+
+
+def estimate_score_thresholds_by_days(days):
+    """
+    日数ごとの星評価基準。
+    まずは仮置き。あとで実シミュ結果の分位点に差し替え可能。
+    """
+    days = max(days, 1)
+
+    # 日数が増えるほど要求ラインが上がる。ただし伸びは緩やかにする
+    base = 25 + 8 * np.log10(days)
+
+    return {
+        "star1": base - 8,    # 下位寄り
+        "star2": base,        # 普通下限
+        "star3": base + 8,    # 上振れ入口
+        "star4": base + 16,   # かなり上振れ
+        "star5": base + 25,   # 神引き級
+    }
+
+
+def get_artifact_star_rating(score, days):
+    thresholds = estimate_score_thresholds_by_days(days)
+
+    if score < thresholds["star1"]:
+        return "★☆☆☆☆", "下振れ", "かなり厳しい結果です"
+    elif score < thresholds["star2"]:
+        return "★★☆☆☆", "やや下振れ", "日数基準では少し物足りないかも"
+    elif score < thresholds["star3"]:
+        return "★★★☆☆", "ふつう〜良い", "現実的には十分あり得る範囲です"
+    elif score < thresholds["star4"]:
+        return "★★★★☆", "かなり上振れ", "この日数ならかなり良い聖遺物です"
+    else:
+        return "★★★★★", "神引き級", "この日数基準ではかなりレアです"
+
+
+def render_artifact_star_diagnosis():
+    st.header("聖遺物ランク診断")
+    st.write("入力した聖遺物を、指定した厳選日数基準で星評価します。")
+
+    st.subheader("1. 厳選日数を設定")
+
+    preset = st.radio(
+        "日数プリセット",
+        ["30日", "90日", "180日", "365日", "自由入力"],
+        horizontal=True,
+    )
+
+    if preset == "30日":
+        days = 30
+    elif preset == "90日":
+        days = 90
+    elif preset == "180日":
+        days = 180
+    elif preset == "365日":
+        days = 365
+    else:
+        days = st.number_input("厳選日数", min_value=1, max_value=9999, value=180, step=1)
+
+    st.subheader("2. 聖遺物ステータスを入力")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        crit_rate = st.number_input("会心率 %", min_value=0.0, max_value=50.0, value=7.8, step=0.1)
+        crit_dmg = st.number_input("会心ダメージ %", min_value=0.0, max_value=100.0, value=21.8, step=0.1)
+        atk_percent = st.number_input("攻撃力 %", min_value=0.0, max_value=50.0, value=0.0, step=0.1)
+
+    with col2:
+        er = st.number_input("元素チャージ効率 %", min_value=0.0, max_value=50.0, value=0.0, step=0.1)
+        em = st.number_input("元素熟知", min_value=0.0, max_value=150.0, value=0.0, step=1.0)
+
+    score = calc_simple_artifact_score(
+        crit_rate=crit_rate,
+        crit_dmg=crit_dmg,
+        atk_percent=atk_percent,
+        er=er,
+        em=em,
+    )
+
+    stars, label, comment = get_artifact_star_rating(score, days)
+
+    st.subheader("3. 診断結果")
+
+    st.metric("簡易スコア", f"{score:.1f}")
+    st.markdown(f"## {days}日厳選基準：{stars}")
+    st.markdown(f"**評価：{label}**")
+    st.write(comment)
+
+    with st.expander("星評価の目安を見る"):
+        thresholds = estimate_score_thresholds_by_days(days)
+        st.write(f"★1目安：{thresholds['star1']:.1f} 未満")
+        st.write(f"★2目安：{thresholds['star1']:.1f} 〜 {thresholds['star2']:.1f}")
+        st.write(f"★3目安：{thresholds['star2']:.1f} 〜 {thresholds['star3']:.1f}")
+        st.write(f"★4目安：{thresholds['star3']:.1f} 〜 {thresholds['star4']:.1f}")
+        st.write(f"★5目安：{thresholds['star4']:.1f} 以上")
+        st.caption("※この基準は仮置きです。あとで実シミュレーションの分布から分位点評価に差し替える想定です。")
 
 with st.sidebar:
     st.markdown("---")
